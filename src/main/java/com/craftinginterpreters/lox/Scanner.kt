@@ -80,7 +80,7 @@ class Scanner(val source: String) {
   private fun consumeMultiLineComment() {
     while (!(match('*') && match('/')) && !isAtEnd()) {
       if (source[current] == '\n') {
-        line++;
+        line++
       }
       advance()
     }
@@ -98,7 +98,7 @@ class Scanner(val source: String) {
     }
 
     advance()
-    addToken(TokenType.STRING, source.substring(start + 1, current - 1) as Object)
+    addToken(TokenType.STRING, source.substring(start + 1, current - 1))
   }
 
   private fun number() {
@@ -109,7 +109,7 @@ class Scanner(val source: String) {
 
       while (isDigit(peek())) advance()
     }
-    addToken(TokenType.NUMBER, source.substring(start, current).toDouble() as Object)
+    addToken(TokenType.NUMBER, source.substring(start, current).toDouble())
   }
 
   private fun identifier() {
@@ -119,7 +119,7 @@ class Scanner(val source: String) {
         ?:run { addToken(TokenType.IDENTIFIER)}
   }
 
-  private fun addToken(type: TokenType, literal: Object?) {
+  private fun addToken(type: TokenType, literal: Any?) {
     val text = source.substring(start, current)
     tokens.add(Token(type, text, literal, line))
   }

@@ -18,7 +18,7 @@ abstract class Expr {
       return visitor.visitGroupingExpr(this)
     }
 	}
-	class Literal(val value: Object?, ) : Expr() {
+	class Literal(val value: Any?, ) : Expr() {
     override fun <R> accept(visitor: Visitor<R>): R {
       return visitor.visitLiteralExpr(this)
     }

@@ -171,8 +171,8 @@ class Parser(val tokens: List<Token>) {
   }
 
   private fun primary(): Expr {
-    if (match(TokenType.FALSE)) return Expr.Literal(false as Object)
-    if (match(TokenType.TRUE)) return Expr.Literal(true as Object)
+    if (match(TokenType.FALSE)) return Expr.Literal(false)
+    if (match(TokenType.TRUE)) return Expr.Literal(true)
     if (match(TokenType.NIL)) return Expr.Literal(null)
     if (match(TokenType.NUMBER, TokenType.STRING)) return Expr.Literal(previous().literal)
     if (match(TokenType.LEFT_PAREN)) {
@@ -228,7 +228,7 @@ class Parser(val tokens: List<Token>) {
 
   private fun advance(): Token {
     if (!isAtEnd()) {
-      current++;
+      current++
     }
     return previous()
   }

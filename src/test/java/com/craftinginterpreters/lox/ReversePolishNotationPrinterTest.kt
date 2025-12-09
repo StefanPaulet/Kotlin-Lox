@@ -10,17 +10,17 @@ class ReversePolishNotationPrinterTest {
       Expr.Binary(
         Expr.Grouping(
           Expr.Binary(
-            Expr.Literal(1 as Object),
+            Expr.Literal(1),
             Token(TokenType.PLUS, "+", null, 1),
-            Expr.Literal(2 as Object)
+            Expr.Literal(2)
           )
         ),
         Token(TokenType.OR, "*", null, 1),
         Expr.Grouping(
           Expr.Binary(
-            Expr.Literal(4 as Object),
+            Expr.Literal(4),
             Token(TokenType.MINUS, "-", null, 1),
-            Expr.Literal(3 as Object)
+            Expr.Literal(3)
           )
         ),
       )

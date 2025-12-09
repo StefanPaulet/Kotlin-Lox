@@ -1,6 +1,6 @@
 package com.craftinginterpreters.lox
 
-class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Unit> {
+class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
   private var environment = Environment()
 
   fun interpret(statements: List<Stmt?>) {
@@ -22,7 +22,7 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Unit> {
     return null
   }
 
-  override fun visitBinaryExpr(expr: Expr.Binary): Object? {
+  override fun visitBinaryExpr(expr: Expr.Binary): Any? {
     val left = evaluate(expr.left)
     val right = evaluate(expr.right)
 
@@ -30,7 +30,7 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Unit> {
       TokenType.MINUS, TokenType.STAR ->
         (arithOps[type]?.let { func ->
           checkNumberOperands(expr.operator, left, right).let {(left, right) -> func(left, right) }
-        }) as Object
+        })
       TokenType.SLASH ->
         checkNumberOperands(expr.operator, left, right).let {(left, right) -> division(left, right)}
             ?: throw RuntimeError(expr.operator, "Cannot divide by 0")
@@ -39,32 +39,32 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Unit> {
       TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL ->
         (boolOps[type]?.let { func ->
           checkNumberOperands(expr.operator, left, right).let {(left, right) -> func(left, right) }
-        }) as Object
-      TokenType.EQUAL_EQUAL -> isEqual(left, right) as Object
-      TokenType.BANG_EQUAL -> !isEqual(left, right) as Object
+        })
+      TokenType.EQUAL_EQUAL -> isEqual(left, right)
+      TokenType.BANG_EQUAL -> !isEqual(left, right)
       else -> null
     }
   }
 
-  override fun visitGroupingExpr(expr: Expr.Grouping): Object? {
+  override fun visitGroupingExpr(expr: Expr.Grouping): Any? {
     return evaluate(expr.expression)
   }
 
-  override fun visitLiteralExpr(expr: Expr.Literal): Object? {
+  override fun visitLiteralExpr(expr: Expr.Literal): Any? {
     return expr.value
   }
 
-  override fun visitUnaryExpr(expr: Expr.Unary): Object? {
+  override fun visitUnaryExpr(expr: Expr.Unary): Any? {
     val right = evaluate(expr.right)
 
     return when (expr.operator.type) {
-      TokenType.MINUS -> -checkNumberOperand(expr.operator, right) as Object
-      TokenType.BANG -> !isTruthy(right) as Object
+      TokenType.MINUS -> -checkNumberOperand(expr.operator, right) as Any
+      TokenType.BANG -> !isTruthy(right) as Any
       else -> null
     }
   }
 
-  override fun visitTernaryExpr(expr: Expr.Ternary): Object? {
+  override fun visitTernaryExpr(expr: Expr.Ternary): Any? {
     val condition = evaluate(expr.condition)
     if (isTruthy(condition)) {
       return evaluate(expr.ifTrue)
@@ -82,7 +82,7 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Unit> {
     println(stringify(value))
   }
 
-  override fun visitVariableExpr(expr: Expr.Variable): Object? {
+  override fun visitVariableExpr(expr: Expr.Variable): Any? {
     return environment[expr.name]
   }
 
@@ -91,7 +91,7 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Unit> {
     environment[stmt.name.lexeme] = value
   }
 
-  override fun visitAssignExpr(expr: Expr.Assign): Object? {
+  override fun visitAssignExpr(expr: Expr.Assign): Any? {
     val value = evaluate(expr.value)
     environment.assign(expr.name, value)
     return value
@@ -117,11 +117,11 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Unit> {
     stmt.accept(this)
   }
 
-  private fun evaluate(expr: Expr): Object? {
+  private fun evaluate(expr: Expr): Any? {
     return expr.accept(this)
   }
 
-  private fun stringify(obj: Object?): String {
+  private fun stringify(obj: Any?): String {
     return obj?.run {
       var text = obj.toString()
       if (obj is Double) {
@@ -131,39 +131,39 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Unit> {
     } ?: "nil"
   }
 
-  private fun isTruthy(obj: Object?): Boolean {
+  private fun isTruthy(obj: Any?): Boolean {
     if (obj == null) return false
-    if (obj is Boolean) return obj as Boolean
-    return true;
+    if (obj is Boolean) return obj
+    return true
   }
 
-  private fun addition(left: Object?, right: Object?): Object? {
-    if (left is Double && right is Double) return ((left as Double) + (right as Double)) as Object
-    if (left is String && right is String) return ((left as String) + (right as String)) as Object
-    if (left is String) return (left + stringify(right)) as Object
-    if (right is String) return (stringify(left) + right) as Object
+  private fun addition(left: Any?, right: Any?): Any? {
+    if (left is Double && right is Double) return (left + right) as Any
+    if (left is String && right is String) return (left + right) as Any
+    if (left is String) return (left + stringify(right)) as Any
+    if (right is String) return (stringify(left) + right) as Any
 
     return null
   }
 
-  private fun division(left: Double, right: Double): Object? {
-    return right.takeIf { it != 0.0 }?.run { (left / this) as Object }
+  private fun division(left: Double, right: Double): Any? {
+    return right.takeIf { it != 0.0 }?.run { left / this }
   }
 
-  private fun isEqual(left: Object?, right: Object?): Boolean {
+  private fun isEqual(left: Any?, right: Any?): Boolean {
     if (left == null && right == null) return true
     if (left == null) return false
     return left == right
   }
 
-  private fun checkNumberOperand(operator: Token, operand: Object?): Double {
-    if (operand is Double) return operand as Double
-    throw RuntimeError(operator, "Operand must be a number.");
+  private fun checkNumberOperand(operator: Token, operand: Any?): Double {
+    if (operand is Double) return operand
+    throw RuntimeError(operator, "Operand must be a number.")
   }
 
-  private fun checkNumberOperands(operator: Token, left: Object?, right: Object?): Pair<Double, Double> {
-    if (left is Double && right is Double) return Pair(left as Double, right as Double)
-    throw RuntimeError(operator, "Operands must be numbers.");
+  private fun checkNumberOperands(operator: Token, left: Any?, right: Any?): Pair<Double, Double> {
+    if (left is Double && right is Double) return Pair(left, right)
+    throw RuntimeError(operator, "Operands must be numbers.")
   }
 
   companion object {

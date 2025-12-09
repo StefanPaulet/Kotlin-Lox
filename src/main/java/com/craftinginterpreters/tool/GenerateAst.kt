@@ -70,7 +70,7 @@ fun main(args: Array<String>) {
     "Assign   : Token name, Expr value",
     "Binary   : Expr left, Token operator, Expr right",
     "Grouping : Expr expression",
-    "Literal  : Object? value",
+    "Literal  : Any? value",
     "Unary    : Token operator, Expr right",
     "Ternary  : Expr condition, Expr ifTrue, Expr ifFalse",
     "Variable : Token name"
