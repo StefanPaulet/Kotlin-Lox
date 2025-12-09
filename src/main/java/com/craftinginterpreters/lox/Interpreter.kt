@@ -13,6 +13,15 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Unit> {
     }
   }
 
+  fun interpret(expr: Expr): String? {
+    try {
+      return stringify(evaluate(expr))
+    } catch (error: RuntimeError) {
+      Lox.runtimeError(error)
+    }
+    return null
+  }
+
   override fun visitBinaryExpr(expr: Expr.Binary): Object? {
     val left = evaluate(expr.left)
     val right = evaluate(expr.right)

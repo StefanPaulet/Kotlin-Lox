@@ -13,13 +13,21 @@ class Parser(val tokens: List<Token>) {
     return stmtList
   }
 
+  fun parseExpression(): Expr? {
+    return try {
+      expression()
+    } catch (_: ParserError) {
+      null
+    }
+  }
+
   private fun declaration(): Stmt? {
-    try {
+    return try {
       if (match(TokenType.VAR)) return varDeclaration()
-      return statement()
-    } catch (error: ParserError) {
+      statement()
+    } catch (_: ParserError) {
       synchronize()
-      return null
+      null
     }
   }
 

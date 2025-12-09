@@ -18,7 +18,7 @@ class Lox {
       while(true) {
         print("> ")
         val line = readlnOrNull() ?: break
-        run(line)
+        runInRepl(line)
         hadError = false
       }
     }
@@ -35,41 +35,47 @@ class Lox {
     }
 
     private fun runInRepl(source: String) {
+      logger.silent = true
+
       val scanner = Scanner(source)
       val tokens = scanner.scanTokens()
       val parser = Parser(tokens)
       val stmts = parser.parse()
 
-      if (hadError) return
-      interpreter.interpret(stmts)
+      logger.silent = false
 
+      stmts.takeIf { !hadError }
+          ?.let { interpreter.interpret(it) }
+          ?:run {
+            hadError = false
+            val parser = Parser(tokens)
+            val expression = parser.parseExpression()
+            expression?.takeIf { !hadError }
+                ?.let { interpreter.interpret(expression) }
+                ?.takeIf { !hadRuntimeError }
+                ?.let { println(it) }
+          }
     }
 
     internal fun error(line: Int, message: String) {
-      report(line, "", message)
-    }
-
-    internal fun runtimeError(error: RuntimeError) {
-      System.err.println("$error \n[line ${error.token.line}]")
-      hadRuntimeError = true
+      logger.error(line, message)
+      hadError = true
     }
 
     fun error(token: Token, message: String) {
-      if (token.type == TokenType.EOF) {
-        report(token.line, " at end", message);
-      } else {
-        report(token.line, " at '" + token.lexeme + "'", message);
-      }
+      logger.error(token, message)
+      hadError = true
     }
 
-    fun report(line: Int, where: String, message: String) {
-      println("[line $line] Error $where: $message")
-      hadError = true
+    internal fun runtimeError(error: RuntimeError) {
+      logger.runtimeError(error)
+      hadRuntimeError = true
     }
 
     val interpreter = Interpreter()
     var hadError = false
     var hadRuntimeError = false
+    val logger = Logger()
   }
 }
 
