@@ -22,8 +22,9 @@ class GenerateAst {
         writer.println("\tabstract fun <R> accept(visitor: Visitor<R>): R")
 
         types.forEach { type ->
-          val className = type.split(":")[0].trim()
-          val fields = type.split(":")[1].trim()
+          val splits = type.split(":")
+          val className = splits[0].trim()
+          val fields = splits[1].trim().takeUnless { it.isEmpty() }
           defineType(writer, baseName, className, fields)
         }
         defineVisitor(writer, baseName, types)
@@ -31,10 +32,10 @@ class GenerateAst {
       }
     }
 
-    fun defineType(writer: PrintWriter, baseName: String, className: String, fieldList: String) {
+    fun defineType(writer: PrintWriter, baseName: String, className: String, fieldList: String?) {
       writer.print("\tclass $className(")
-      fieldList.split(", ")
-          .forEach {
+      fieldList?.split(", ")
+          ?.forEach {
             val (type, name) = it.split(" ")
             writer.print("val $name: $type, ")
           }
@@ -83,6 +84,7 @@ fun main(args: Array<String>) {
     "Print      : Expr expression",
     "While      : Expr condition, Stmt body",
     "Var        : Token name, Expr? initializer",
-    "Block      : List<Stmt?> statements"
+    "Block      : List<Stmt?> statements",
+    "Break      :",
   ))
 }

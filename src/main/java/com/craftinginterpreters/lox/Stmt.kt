@@ -33,6 +33,11 @@ abstract class Stmt {
       return visitor.visitBlockStmt(this)
     }
 	}
+	class Break() : Stmt() {
+    override fun <R> accept(visitor: Visitor<R>): R {
+      return visitor.visitBreakStmt(this)
+    }
+	}
 	interface Visitor<R> {
 		fun visitExpressionStmt(stmt: Expression): R
 		fun visitIfStmt(stmt: If): R
@@ -40,5 +45,6 @@ abstract class Stmt {
 		fun visitWhileStmt(stmt: While): R
 		fun visitVarStmt(stmt: Var): R
 		fun visitBlockStmt(stmt: Block): R
+		fun visitBreakStmt(stmt: Break): R
 	}
 }

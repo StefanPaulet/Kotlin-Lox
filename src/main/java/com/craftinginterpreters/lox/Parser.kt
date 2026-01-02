@@ -2,6 +2,7 @@ package com.craftinginterpreters.lox
 
 class Parser(val tokens: List<Token>) {
   private var current = 0
+  private var inLoop = false
 
   private class ParserError: RuntimeException()
 
@@ -43,6 +44,12 @@ class Parser(val tokens: List<Token>) {
     if (match(TokenType.IF)) return ifStatement()
     if (match(TokenType.PRINT)) return printStatement()
     if (match(TokenType.WHILE)) return whileStatement()
+    if (match(TokenType.BREAK)) {
+      if (!inLoop) {
+        throw error(previous(), "Break statement may not appear outside of a loop.")
+      }
+      return breakStatement()
+    }
     if (match(TokenType.LEFT_BRACE)) return Stmt.Block(block())
     return expressionStatement()
   }
@@ -59,7 +66,7 @@ class Parser(val tokens: List<Token>) {
     val increment = if(!check(TokenType.RIGHT_PAREN)) expression() else null
     consume(TokenType.RIGHT_PAREN, "Expected ')' after for clause.")
 
-    var body = statement()
+    var body = doInLoop { statement() }
 
     body = increment?.let { inc -> Stmt.Block(listOf(body, Stmt.Expression(inc)))} ?: body
     body = condition?.let { cond -> Stmt.While(cond,  body) } ?: body
@@ -89,9 +96,14 @@ class Parser(val tokens: List<Token>) {
     val condition = expression()
     consume(TokenType.RIGHT_PAREN, "Expected ')' after while condition.")
 
-    val body = statement()
+    val body = doInLoop { statement() }
 
     return Stmt.While(condition, body)
+  }
+
+  private fun breakStatement(): Stmt {
+    consume(TokenType.SEMICOLON, "Expected ';' after break.")
+    return Stmt.Break()
   }
 
   private fun block(): List<Stmt?> {
@@ -286,6 +298,13 @@ class Parser(val tokens: List<Token>) {
     }
 
     return false
+  }
+
+  private fun <R> doInLoop(callable: () -> R): R {
+    inLoop = true
+    val result = callable()
+    inLoop = false
+    return result
   }
 
   private fun check(type: TokenType) = !isAtEnd() && peek().type == type

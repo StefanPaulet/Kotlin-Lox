@@ -93,8 +93,16 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
 
   override fun visitWhileStmt(stmt: Stmt.While) {
     while(isTruthy(evaluate(stmt.condition))) {
-      execute(stmt.body)
+      try {
+        execute(stmt.body)
+      } catch (_: ControlFlowException.BreakException) {
+        break
+      }
     }
+  }
+
+  override fun visitBreakStmt(stmt: Stmt.Break) {
+    throw ControlFlowException.BreakException()
   }
 
   override fun visitVariableExpr(expr: Expr.Variable): Any? {
@@ -118,7 +126,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     when (expr.operator.type) {
       TokenType.OR -> if (isTruthy(left)) return left
       TokenType.AND -> if (!isTruthy(left)) return left
-      else -> null
+      else -> Unit
     }
 
     return evaluate(expr.right)

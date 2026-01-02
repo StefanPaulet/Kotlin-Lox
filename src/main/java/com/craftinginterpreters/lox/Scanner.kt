@@ -150,6 +150,7 @@ class Scanner(val source: String) {
       "true" to TokenType.TRUE,
       "var" to TokenType.VAR,
       "while" to TokenType.WHILE,
+      "break" to TokenType.BREAK
     )
 
     val symbolTokenMap = mapOf(
