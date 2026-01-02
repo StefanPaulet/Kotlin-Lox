@@ -1,7 +1,18 @@
 package com.craftinginterpreters.lox
 
 class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
-  private var environment = Environment()
+  val globals: Environment = Environment()
+  private var environment = globals
+
+  constructor() {
+    globals["clock"] = object : LoxCallable {
+      override fun call(interpreter: Interpreter, arguments: List<Any?>): Any {
+        return System.currentTimeMillis() / 1000.0
+      }
+
+      override fun arity(): Int = 0
+    }
+  }
 
   fun interpret(statements: List<Stmt?>) {
     try {
@@ -42,6 +53,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         })
       TokenType.EQUAL_EQUAL -> isEqual(left, right)
       TokenType.BANG_EQUAL -> !isEqual(left, right)
+      TokenType.COMMA -> right
       else -> null
     }
   }
@@ -62,6 +74,24 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
       TokenType.BANG -> !isTruthy(right) as Any
       else -> null
     }
+  }
+
+  override fun visitCallExpr(expr: Expr.Call): Any? {
+    val callee = evaluate(expr.callee)
+    val arguments = mutableListOf<Any?>()
+    for (arg in expr.arguments) {
+      arguments.add(evaluate(arg))
+    }
+
+    if (callee !is LoxCallable) {
+      throw RuntimeError(expr.paren, "Can only call functions and classes.")
+    }
+
+    if (arguments.size != callee.arity()) {
+      throw RuntimeError(expr.paren, "Expected ${callee.arity()} arguments but got ${arguments.size}.")
+    }
+
+    return callee.call(this, arguments)
   }
 
   override fun visitTernaryExpr(expr: Expr.Ternary): Any? {
@@ -91,22 +121,32 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     println(stringify(value))
   }
 
+  override fun visitReturnStmt(stmt: Stmt.Return) {
+    val value = stmt.expression?.let { evaluate(it) }
+    throw ControlFlowException.Return(value)
+  }
+
   override fun visitWhileStmt(stmt: Stmt.While) {
     while(isTruthy(evaluate(stmt.condition))) {
       try {
         execute(stmt.body)
-      } catch (_: ControlFlowException.BreakException) {
+      } catch (_: ControlFlowException.Break) {
         break
       }
     }
   }
 
   override fun visitBreakStmt(stmt: Stmt.Break) {
-    throw ControlFlowException.BreakException()
+    throw ControlFlowException.Break()
   }
 
   override fun visitVariableExpr(expr: Expr.Variable): Any? {
     return environment[expr.name]
+  }
+
+  override fun visitFunctionStmt(stmt: Stmt.Function) {
+    val function = LoxFunction(stmt, environment)
+    environment[stmt.name.lexeme] = function
   }
 
   override fun visitVarStmt(stmt: Stmt.Var) {
@@ -136,7 +176,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     executeBlock(stmt.statements, Environment(this.environment))
   }
 
-  private fun executeBlock(stmtList: List<Stmt?>, environment: Environment) {
+  fun executeBlock(stmtList: List<Stmt?>, environment: Environment) {
     val previous = this.environment
     try {
       this.environment = environment

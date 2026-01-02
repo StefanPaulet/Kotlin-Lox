@@ -24,7 +24,7 @@ class GenerateAst {
         types.forEach { type ->
           val splits = type.split(":")
           val className = splits[0].trim()
-          val fields = splits[1].trim().takeUnless { it.isEmpty() }
+          val fields = splits[1].trim()
           defineType(writer, baseName, className, fields)
         }
         defineVisitor(writer, baseName, types)
@@ -70,6 +70,7 @@ fun main(args: Array<String>) {
   GenerateAst.defineAst(outputDir, "Expr", arrayOf(
     "Assign   : Token name, Expr value",
     "Binary   : Expr left, Token operator, Expr right",
+    "Call     : Expr callee, Token paren, List<Expr> arguments",
     "Grouping : Expr expression",
     "Literal  : Any? value",
     "Logical  : Expr left, Token operator, Expr right",
@@ -80,11 +81,13 @@ fun main(args: Array<String>) {
 
   GenerateAst.defineAst(outputDir, "Stmt", arrayOf(
     "Expression : Expr expression",
+    "Function   : Token name, List<Token> params, List<Stmt?> body",
     "If         : Expr condition, Stmt thenBranch, Stmt? elseBranch",
     "Print      : Expr expression",
+    "Return     : Token keyword, Expr? expression",
     "While      : Expr condition, Stmt body",
     "Var        : Token name, Expr? initializer",
     "Block      : List<Stmt?> statements",
-    "Break      :",
+    "Break      : Token keyword",
   ))
 }
