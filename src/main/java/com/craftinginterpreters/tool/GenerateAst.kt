@@ -71,6 +71,7 @@ fun main(args: Array<String>) {
     "Binary   : Expr left, Token operator, Expr right",
     "Grouping : Expr expression",
     "Literal  : Any? value",
+    "Logical  : Expr left, Token operator, Expr right",
     "Unary    : Token operator, Expr right",
     "Ternary  : Expr condition, Expr ifTrue, Expr ifFalse",
     "Variable : Token name"
@@ -78,7 +79,9 @@ fun main(args: Array<String>) {
 
   GenerateAst.defineAst(outputDir, "Stmt", arrayOf(
     "Expression : Expr expression",
+    "If         : Expr condition, Stmt thenBranch, Stmt? elseBranch",
     "Print      : Expr expression",
+    "While      : Expr condition, Stmt body",
     "Var        : Token name, Expr? initializer",
     "Block      : List<Stmt?> statements"
   ))

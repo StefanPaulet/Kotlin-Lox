@@ -39,15 +39,59 @@ class Parser(val tokens: List<Token>) {
   }
 
   private fun statement(): Stmt {
+    if (match(TokenType.FOR)) return forStatement()
+    if (match(TokenType.IF)) return ifStatement()
     if (match(TokenType.PRINT)) return printStatement()
+    if (match(TokenType.WHILE)) return whileStatement()
     if (match(TokenType.LEFT_BRACE)) return Stmt.Block(block())
     return expressionStatement()
+  }
+
+  private fun forStatement(): Stmt {
+    consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'.");
+    val initializer = if (match(TokenType.SEMICOLON)) null else
+      if (match(TokenType.VAR)) varDeclaration() else
+      expressionStatement()
+
+    val condition = if (!check(TokenType.SEMICOLON)) expression() else null
+    consume(TokenType.SEMICOLON, "Expected ';' after loop condition.")
+
+    val increment = if(!check(TokenType.RIGHT_PAREN)) expression() else null
+    consume(TokenType.RIGHT_PAREN, "Expected ')' after for clause.")
+
+    var body = statement()
+
+    body = increment?.let { inc -> Stmt.Block(listOf(body, Stmt.Expression(inc)))} ?: body
+    body = condition?.let { cond -> Stmt.While(cond,  body) } ?: body
+    body = initializer?.let { init -> Stmt.Block(listOf(init, body))} ?: body
+    return body
+  }
+
+  private fun ifStatement(): Stmt {
+    consume(TokenType.LEFT_PAREN, "Expected '(' after 'if'.")
+    val condition = expression()
+    consume(TokenType.RIGHT_PAREN, "Expected ')' after if condition.")
+
+    val thenBranch = statement()
+    val elseBranch = if (match(TokenType.ELSE)) statement() else null
+
+    return Stmt.If(condition, thenBranch, elseBranch)
   }
 
   private fun printStatement(): Stmt {
     val expression = expression()
     consume(TokenType.SEMICOLON, "Expected ';' after value.")
     return Stmt.Print(expression)
+  }
+
+  private fun whileStatement(): Stmt {
+    consume(TokenType.LEFT_PAREN, "Expected '(' after 'while'.")
+    val condition = expression()
+    consume(TokenType.RIGHT_PAREN, "Expected ')' after while condition.")
+
+    val body = statement()
+
+    return Stmt.While(condition, body)
   }
 
   private fun block(): List<Stmt?> {
@@ -77,7 +121,7 @@ class Parser(val tokens: List<Token>) {
   }
 
   private fun assignment(): Expr {
-    val expr = ternary()
+    val expr = or()
     if (match(TokenType.EQUAL)) {
       val equals = previous()
       val value = assignment()
@@ -88,6 +132,26 @@ class Parser(val tokens: List<Token>) {
       error(equals, "Invalid assignment target")
     }
 
+    return expr
+  }
+
+  private fun or(): Expr {
+    var expr = and()
+    while (match(TokenType.OR)) {
+      val operator = previous()
+      val right = and()
+      expr = Expr.Logical(expr, operator, right)
+    }
+    return expr
+  }
+
+  private fun and(): Expr {
+    var expr = ternary()
+    while (match(TokenType.AND)) {
+      val operator = previous()
+      val right = ternary()
+      expr = Expr.Logical(expr, operator, right)
+    }
     return expr
   }
 

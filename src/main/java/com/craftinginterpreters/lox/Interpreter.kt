@@ -77,9 +77,24 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     return
   }
 
+  override fun visitIfStmt(stmt: Stmt.If) {
+    if (isTruthy(evaluate(stmt.condition))) {
+      execute(stmt.thenBranch)
+    } else if (stmt.elseBranch != null) {
+      execute(stmt.thenBranch)
+    }
+    return
+  }
+
   override fun visitPrintStmt(stmt: Stmt.Print) {
     val value = evaluate(stmt.expression)
     println(stringify(value))
+  }
+
+  override fun visitWhileStmt(stmt: Stmt.While) {
+    while(isTruthy(evaluate(stmt.condition))) {
+      execute(stmt.body)
+    }
   }
 
   override fun visitVariableExpr(expr: Expr.Variable): Any? {
@@ -95,6 +110,18 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     val value = evaluate(expr.value)
     environment.assign(expr.name, value)
     return value
+  }
+
+  override fun visitLogicalExpr(expr: Expr.Logical): Any? {
+    val left = evaluate(expr.left)
+
+    when (expr.operator.type) {
+      TokenType.OR -> if (isTruthy(left)) return left
+      TokenType.AND -> if (!isTruthy(left)) return left
+      else -> null
+    }
+
+    return evaluate(expr.right)
   }
 
   override fun visitBlockStmt(stmt: Stmt.Block) {

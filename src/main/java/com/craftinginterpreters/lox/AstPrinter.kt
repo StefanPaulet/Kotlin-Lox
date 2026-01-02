@@ -33,6 +33,10 @@ class AstPrinter : Expr.Visitor<String> {
     TODO("Not yet implemented")
   }
 
+  override fun visitLogicalExpr(expr: Expr.Logical): String {
+    TODO("Not yet implemented")
+  }
+
   private fun parenthesize(name: String, vararg expressions: Expr): String {
     StringBuilder().run {
       append("($name")
