@@ -87,8 +87,8 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
   }
 
   override fun visitVarStmt(stmt: Stmt.Var) {
-    val value = stmt.initializer?.run { evaluate(this) }
-    environment[stmt.name.lexeme] = value
+    stmt.initializer?.run { environment[stmt.name.lexeme] = evaluate(this) }
+        ?:run { environment.declare(stmt.name) }
   }
 
   override fun visitAssignExpr(expr: Expr.Assign): Any? {
