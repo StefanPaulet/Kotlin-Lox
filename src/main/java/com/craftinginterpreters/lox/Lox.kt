@@ -29,12 +29,12 @@ class Lox {
       val parser = Parser(tokens)
       val stmts = parser.parse()
 
-      if (hadError) return
-      val resolver = Resolver(interpreter)
-      resolver.resolve(stmts)
-
-      if (hadError) return
-      interpreter.interpret(stmts)
+      takeUnless { hadError }?.let {
+        val resolver = Resolver(interpreter)
+        resolver.resolve(stmts)
+      }?.takeUnless { hadError }?.let {
+        interpreter.interpret(stmts)
+      }
     }
 
     private fun runInRepl(source: String) {
@@ -45,22 +45,21 @@ class Lox {
       val parser = Parser(tokens)
       val stmts = parser.parse()
 
-      val resolver = Resolver(interpreter)
-      resolver.resolve(stmts)
-
-      logger.silent = false
-
-      stmts.takeIf { !hadError }
-          ?.let { interpreter.interpret(it) }
-          ?:run {
-            hadError = false
-            val parser = Parser(tokens)
-            val expression = parser.parseExpression()
-            expression?.takeIf { !hadError }
-                ?.let { interpreter.interpret(expression) }
-                ?.takeIf { !hadRuntimeError }
-                ?.let { println(it) }
-          }
+      takeUnless { hadError }?.let{
+        val resolver = Resolver(interpreter)
+        resolver.resolve(stmts)
+      }?.takeUnless { hadError }?.let{
+          logger.silent = false
+          interpreter.interpret(stmts)
+      }?:run {
+          hadError = false
+          val parser = Parser(tokens)
+          val expression = parser.parseExpression()
+          expression?.takeIf { !hadError }
+              ?.let { interpreter.interpret(expression) }
+              ?.takeIf { !hadRuntimeError }
+              ?.let { println(it) }
+        }
     }
 
     internal fun error(line: Int, message: String) {
@@ -87,12 +86,12 @@ class Lox {
 
 fun main(args: Array<String>) {
   if (args.size > 1) {
-    println("Usage: jlox [script]");
-    exitProcess(64);
+    println("Usage: jlox [script]")
+    exitProcess(64)
   }
   if (args.size == 1) {
-    Lox.runFile(args[0]);
+    Lox.runFile(args[0])
   } else {
-    Lox.runPrompt();
+    Lox.runPrompt()
   }
 }

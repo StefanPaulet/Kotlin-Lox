@@ -1,1 +1,9 @@
-return 5;
+fun thrice(fn) {
+  for (var i = 1; i <= 3; i = i + 1) {
+    fn(i);
+  }
+}
+var y = 5;
+thrice(fun (a) {
+  print y + a;
+});

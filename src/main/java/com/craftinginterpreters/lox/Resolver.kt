@@ -6,22 +6,16 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
   private enum class FunctionType {
     NONE,
     FUNCTION,
+    LAMBDA,
   }
 
   private val scopes = Stack<MutableMap<String, Boolean>>()
   private var currentFunction = FunctionType.NONE
+  private var inLoop = false
 
-  fun resolve(statements: List<Stmt?>) {
-    for (stmt in statements) {
-      resolve(stmt)
-    }
-  }
+  fun resolve(statements: List<Stmt?>) = statements.forEach { resolve(it) }
 
-  override fun visitBlockStmt(stmt: Stmt.Block) {
-    beginScope()
-    resolve(stmt.statements)
-    endScope()
-  }
+  override fun visitBlockStmt(stmt: Stmt.Block) = inScope { resolve(stmt.statements) }
 
   override fun visitVarStmt(stmt: Stmt.Var) {
     declare(stmt.name)
@@ -66,27 +60,27 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
   }
 
   private fun resolveFunction(func: Stmt.Function, type: FunctionType) {
-    val enclosingFunction = currentFunction
-    currentFunction = type
-    beginScope()
-
-    for (param in func.params) {
-      declare(param)
-      define(param)
+    inFunction(type) {
+      inScope {
+        for (param in func.params) {
+          declare(param)
+          define(param)
+        }
+        resolve(func.body)
+      }
     }
-    resolve(func.body)
-    endScope()
-    currentFunction = enclosingFunction
   }
 
   override fun visitLambdaExpr(expr: Expr.Lambda) {
-    beginScope()
-    for (param in expr.params) {
-      declare(param)
-      define(param)
+    inFunction(FunctionType.LAMBDA) {
+      inScope {
+        for (param in expr.params) {
+          declare(param)
+          define(param)
+        }
+        resolve(expr.body)
+      }
     }
-    resolve(expr.body)
-    endScope()
   }
 
   override fun visitExpressionStmt(stmt: Stmt.Expression) = resolve(stmt.expression)
@@ -104,9 +98,11 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
   }
   override fun visitWhileStmt(stmt: Stmt.While) {
     resolve(stmt.condition)
-    resolve(stmt.body)
+    inLoop { resolve(stmt.body) }
   }
-  override fun visitBreakStmt(stmt: Stmt.Break) = Unit
+  override fun visitBreakStmt(stmt: Stmt.Break) {
+    if (!inLoop) { Lox.error(stmt.keyword, "Break statement may not appear outside of a loop.") }
+  }
 
   override fun visitBinaryExpr(expr: Expr.Binary) {
     resolve(expr.left)
@@ -142,6 +138,31 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
   private fun define(name: Token) {
     if (scopes.isEmpty()) return
     scopes.peek()[name.lexeme] = true
+  }
+
+  private fun <R> inScope(callable: () -> R): R {
+    beginScope()
+    val retVal = callable()
+    endScope()
+
+    return retVal
+  }
+
+  private fun <R> inLoop(callable: () -> R): R {
+    inLoop = true
+    val retVal = callable()
+    inLoop = false
+
+    return retVal
+  }
+
+  private fun <R> inFunction(type: FunctionType, callable: () -> R): R {
+    val enclosingFunction = currentFunction
+    currentFunction = type
+    val retVal = callable()
+    currentFunction = enclosingFunction
+
+    return retVal
   }
 
   private fun beginScope() { scopes.push(HashMap()) }
