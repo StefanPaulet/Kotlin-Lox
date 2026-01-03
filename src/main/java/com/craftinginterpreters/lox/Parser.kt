@@ -150,16 +150,19 @@ class Parser(val tokens: List<Token>) {
   }
 
   private fun expression(): Expr {
-    if (match(TokenType.FUN)) return lambda()
-
-    var expr = assignment()
+    var expr = assignmentExpr()
     while (match(TokenType.COMMA)) {
       val comma = previous()
-      val right = assignment()
+      val right = assignmentExpr()
       expr = Expr.Binary(expr, comma, right)
     }
 
     return expr
+  }
+
+  private fun assignmentExpr(): Expr {
+    if (match(TokenType.FUN)) return lambda()
+    return assignment()
   }
 
   private fun assignment(): Expr {
@@ -293,7 +296,7 @@ class Parser(val tokens: List<Token>) {
     if (!check(TokenType.RIGHT_PAREN)) {
       do {
         if (arguments.size >= 255) { error(peek(), "Can't have more than 255 arguments.") }
-        arguments.add(assignment())
+        arguments.add(assignmentExpr())
       } while (match(TokenType.COMMA))
     }
     val paren = consume(TokenType.RIGHT_PAREN, "Expected ')' after arguments of function call.")
