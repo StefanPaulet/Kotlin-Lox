@@ -25,7 +25,8 @@ whileStmt      → "while" "(" expression ")" statement ;
 breakStmt      → "break" ";" ;
 block          → "{" declaration * "}" ;
 
-expression     → assignment ("," assignment)* ;
+expression     → assignment ("," assignment)*
+               | lambdaExpr ;
 assignment     → IDENTIFIER "=" assignment
                | logic_or ;
 logic_or       → logic_and ( "or" logic_and )* ;
@@ -42,6 +43,7 @@ primary        → NUMBER | STRING
                | "true" | "false" | "nil"
                | "(" expression ")"
                | IDENTIFIER ;
+lambdaExpr     → "fun" "(" parameters? ")" block ;
 
 arguments      → assignment ( "," assignment )* ;
 parameters     → IDENTIFIER ( "," IDENTIFIER )* ;

@@ -150,6 +150,8 @@ class Parser(val tokens: List<Token>) {
   }
 
   private fun expression(): Expr {
+    if (match(TokenType.FUN)) return lambda()
+
     var expr = assignment()
     while (match(TokenType.COMMA)) {
       val comma = previous()
@@ -313,6 +315,25 @@ class Parser(val tokens: List<Token>) {
     }
 
     throw error(peek(), "Token cannot represent primary expression.")
+  }
+
+  private fun lambda(): Expr {
+    val head = previous()
+    consume(TokenType.LEFT_PAREN, "Expected '(' after lambda name.")
+    val parameters = mutableListOf<Token>()
+    if (!check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (parameters.size >= 255) {
+          error(peek(), "Can't have more than 255 parameters.")
+        }
+        parameters.add(consume(TokenType.IDENTIFIER, "Expected parameter name."))
+      } while(match(TokenType.COMMA))
+    }
+    consume(TokenType.RIGHT_PAREN, "Expected ')' after parameters of function.")
+
+    consume(TokenType.LEFT_BRACE, "Expected '{' before lambda body.")
+    val body = block()
+    return Expr.Lambda(head, parameters, body)
   }
 
   private fun synchronize() {

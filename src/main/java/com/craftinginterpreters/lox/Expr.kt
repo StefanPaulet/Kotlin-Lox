@@ -48,6 +48,11 @@ abstract class Expr {
       return visitor.visitVariableExpr(this)
     }
 	}
+	class Lambda(val head: Token, val params: List<Token>, val body: List<Stmt?>, ) : Expr() {
+    override fun <R> accept(visitor: Visitor<R>): R {
+      return visitor.visitLambdaExpr(this)
+    }
+	}
 	interface Visitor<R> {
 		fun visitAssignExpr(expr: Assign): R
 		fun visitBinaryExpr(expr: Binary): R
@@ -58,5 +63,6 @@ abstract class Expr {
 		fun visitUnaryExpr(expr: Unary): R
 		fun visitTernaryExpr(expr: Ternary): R
 		fun visitVariableExpr(expr: Variable): R
+		fun visitLambdaExpr(expr: Lambda): R
 	}
 }

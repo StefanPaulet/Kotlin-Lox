@@ -76,7 +76,8 @@ fun main(args: Array<String>) {
     "Logical  : Expr left, Token operator, Expr right",
     "Unary    : Token operator, Expr right",
     "Ternary  : Expr condition, Expr ifTrue, Expr ifFalse",
-    "Variable : Token name"
+    "Variable : Token name",
+    "Lambda   : Token head, List<Token> params, List<Stmt?> body"
   ))
 
   GenerateAst.defineAst(outputDir, "Stmt", arrayOf(

@@ -76,6 +76,10 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     }
   }
 
+  override fun visitLambdaExpr(expr: Expr.Lambda): Any? {
+    return LoxAnonymousFunction(expr, environment)
+  }
+
   override fun visitCallExpr(expr: Expr.Call): Any? {
     val callee = evaluate(expr.callee)
     val arguments = mutableListOf<Any?>()
