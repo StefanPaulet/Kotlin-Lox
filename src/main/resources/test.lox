@@ -1,9 +1,5 @@
-fun thrice(fn) {
-  for (var i = 1; i <= 3; i = i + 1) {
-    fn(i);
-  }
+fun foo(x, y) {
+    var z = 3;
+    x = y + 3;
+    return x + y;
 }
-var y = 5;
-thrice(fun (a) {
-  print y + a;
-});

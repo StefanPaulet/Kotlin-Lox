@@ -12,6 +12,7 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
   private val scopes = Stack<MutableMap<String, Boolean>>()
   private var currentFunction = FunctionType.NONE
   private var inLoop = false
+  private val usages = HashSet<Token>()
 
   fun resolve(statements: List<Stmt?>) = statements.forEach { resolve(it) }
 
@@ -29,6 +30,7 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
     }
 
     resolveLocal(expr, expr.name)
+    usages.removeIf { it.lexeme == expr.name.lexeme }
   }
 
   override fun visitAssignExpr(expr: Expr.Assign) {
@@ -133,6 +135,7 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
       Lox.error(name, "A variable with this name already exists in this scope")
     }
     scope[name.lexeme] = false
+    usages.add(name)
   }
 
   private fun define(name: Token) {
@@ -165,6 +168,14 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
     return retVal
   }
 
-  private fun beginScope() { scopes.push(HashMap()) }
-  private fun endScope() { scopes.pop() }
+  private fun beginScope() {
+    scopes.push(HashMap())
+    usages.clear()
+  }
+  private fun endScope() {
+    scopes.pop()
+    usages.forEach {
+      Lox.warning(it, "Unused local variable")
+    }
+  }
 }

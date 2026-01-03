@@ -77,6 +77,10 @@ class Lox {
       hadRuntimeError = true
     }
 
+    fun warning(token: Token, message: String) {
+      logger.warning(token, message)
+    }
+
     val interpreter = Interpreter()
     var hadError = false
     var hadRuntimeError = false
