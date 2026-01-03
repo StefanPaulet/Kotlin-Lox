@@ -30,8 +30,11 @@ class Lox {
       val stmts = parser.parse()
 
       if (hadError) return
-      interpreter.interpret(stmts)
+      val resolver = Resolver(interpreter)
+      resolver.resolve(stmts)
 
+      if (hadError) return
+      interpreter.interpret(stmts)
     }
 
     private fun runInRepl(source: String) {
@@ -41,6 +44,9 @@ class Lox {
       val tokens = scanner.scanTokens()
       val parser = Parser(tokens)
       val stmts = parser.parse()
+
+      val resolver = Resolver(interpreter)
+      resolver.resolve(stmts)
 
       logger.silent = false
 
