@@ -1,9 +1,11 @@
 package com.craftinginterpreters.lox
 
 class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
-  val globals: Environment = Environment()
-  private var environment = globals
-  private val locals = HashMap<Expr, Int>()
+  private class VarBinding(val depth: Int, var slot: Int)
+
+  val globals = GlobalEnvironment()
+  private var environment: Environment? = null
+  private val locals = HashMap<Expr, VarBinding>()
 
   constructor() {
     globals["clock"] = object : LoxCallable {
@@ -151,19 +153,25 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
 
   override fun visitFunctionStmt(stmt: Stmt.Function) {
     val function = LoxFunction(stmt, environment)
-    environment[stmt.name.lexeme] = function
+    define(stmt.name, function)
   }
 
   override fun visitVarStmt(stmt: Stmt.Var) {
-    stmt.initializer?.run { environment[stmt.name.lexeme] = evaluate(this) }
-        ?:run { environment.declare(stmt.name) }
+    stmt.initializer?.run {
+      define(stmt.name, evaluate(this))
+    } ?:run {
+      environment?.declare()
+          ?: run { globals[stmt.name.lexeme] = null }
+    }
   }
 
   override fun visitAssignExpr(expr: Expr.Assign): Any? {
     val value = evaluate(expr.value)
     val distance = locals[expr]
-    distance?.let { environment.assignAt(distance, expr.name, value) }
-        ?:let { globals.assign(expr.name, value) }
+    distance?.let {
+      if (environment == null) { throw InternalCompilerError("static name resolution failed") }
+      environment!!.assignAt(distance.depth, distance.slot, value)
+    } ?:let { globals.assign(expr.name, value) }
     return value
   }
 
@@ -248,12 +256,21 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     throw RuntimeError(operator, "Operands must be numbers.")
   }
 
-  fun resolve(expr: Expr, depth: Int) { locals[expr] = depth }
+  fun resolve(expr: Expr, envOffset: Int, scopeOffset: Int) {
+    locals[expr] = VarBinding(envOffset, scopeOffset)
+  }
 
   private fun lookUpVariable(name: Token, expr: Expr): Any? {
     val distance = locals[expr]
-    return distance?.let { environment.getAt(distance, name) }
-        ?:let { globals[name] }
+    return if (distance != null) run {
+      if (environment == null) { throw InternalCompilerError("static name resolution failed") }
+      environment!!.getAt(distance.depth, distance.slot)
+    } else globals[name]
+  }
+
+  private fun define(name: Token, value: Any?) {
+    environment?.apply { this.define(value) }
+        ?: run { globals[name.lexeme] = value }
   }
 
   companion object {

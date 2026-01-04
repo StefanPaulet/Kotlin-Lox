@@ -9,10 +9,18 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
     LAMBDA,
   }
 
-  private val scopes = Stack<MutableMap<String, Boolean>>()
+  private class Variable(val token: Token, val slot: Int) {
+    enum class Usage {
+      DECLARED,
+      DEFINED,
+      USED
+    }
+    var usage: Usage = Usage.DECLARED
+  }
+
+  private val scopes = Stack<MutableMap<String, Variable>>()
   private var currentFunction = FunctionType.NONE
   private var inLoop = false
-  private val usages = HashSet<Token>()
 
   fun resolve(statements: List<Stmt?>) = statements.forEach { resolve(it) }
 
@@ -25,12 +33,11 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
   }
 
   override fun visitVariableExpr(expr: Expr.Variable) {
-    if (scopes.isNotEmpty() && scopes.peek()[expr.name.lexeme] == false) {
+    if (scopes.isNotEmpty() && scopes.peek()[expr.name.lexeme]?.usage == Variable.Usage.DECLARED) {
       Lox.error(expr.name, "Can't read local variable in its own initializer.")
     }
 
     resolveLocal(expr, expr.name)
-    usages.removeIf { it.lexeme == expr.name.lexeme }
   }
 
   override fun visitAssignExpr(expr: Expr.Assign) {
@@ -55,8 +62,10 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
 
   private fun resolveLocal(expr: Expr, name: Token) {
     for (idx in scopes.size - 1 downTo 0) {
-      if (scopes[idx].containsKey(name.lexeme)) {
-        interpreter.resolve(expr, scopes.size - 1 - idx)
+      scopes[idx][name.lexeme]?.let {
+        interpreter.resolve(expr, scopes.size - 1 - idx, it.slot)
+        if (expr !is Expr.Assign) it.usage = Variable.Usage.USED
+        return
       }
     }
   }
@@ -134,13 +143,12 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
     if (scope.containsKey(name.lexeme)) {
       Lox.error(name, "A variable with this name already exists in this scope")
     }
-    scope[name.lexeme] = false
-    usages.add(name)
+    scope[name.lexeme] = Variable(name, scope.size)
   }
 
   private fun define(name: Token) {
     if (scopes.isEmpty()) return
-    scopes.peek()[name.lexeme] = true
+    scopes.peek()[name.lexeme]?.usage = Variable.Usage.DEFINED
   }
 
   private fun <R> inScope(callable: () -> R): R {
@@ -170,12 +178,12 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
 
   private fun beginScope() {
     scopes.push(HashMap())
-    usages.clear()
   }
   private fun endScope() {
+    scopes.peek().filter { (_, variable) -> variable.usage == Variable.Usage.DEFINED }
+        .forEach { (_, variable) ->
+          Lox.warning(variable.token, "Unused local variable")
+        }
     scopes.pop()
-    usages.forEach {
-      Lox.warning(it, "Unused local variable")
-    }
   }
 }

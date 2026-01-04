@@ -1,5 +1,14 @@
-fun foo(x, y) {
-    var z = 3;
-    x = y + 3;
-    return x + y;
+fun thrice(fn) {
+  var i = 3;
+  for (var i = 1; i <= 3; i = i + 1) {
+    fn(i);
+  }
+  return i;
 }
+
+print thrice(fun (a) {
+  print a;
+});
+// "1".
+// "2".
+// "3".
