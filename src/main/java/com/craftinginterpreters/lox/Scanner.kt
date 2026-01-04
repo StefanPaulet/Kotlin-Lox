@@ -88,7 +88,7 @@ class Scanner(val source: String) {
 
   private fun string() {
     while (peek() != '"' && !isAtEnd()) {
-      if (peek() != '\n') line++
+      if (peek() == '\n') line++
       advance()
     }
 
