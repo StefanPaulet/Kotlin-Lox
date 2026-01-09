@@ -45,6 +45,18 @@ class ReversePolishNotationPrinter : Expr.Visitor<String> {
     TODO("Not yet implemented")
   }
 
+  override fun visitGetExpr(expr: Expr.Get): String {
+    TODO("Not yet implemented")
+  }
+
+  override fun visitSetExpr(expr: Expr.Set): String {
+    TODO("Not yet implemented")
+  }
+
+  override fun visitThisExpr(expr: Expr.This): String {
+    TODO("Not yet implemented")
+  }
+
   private fun polish(name: String, vararg expressions: Expr): String {
     return StringBuilder().run {
       expressions.forEach {expr -> append("${expr.accept(this@ReversePolishNotationPrinter)} ")}

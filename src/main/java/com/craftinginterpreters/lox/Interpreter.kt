@@ -101,12 +101,45 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     return callee.call(this, arguments)
   }
 
+  override fun visitGetExpr(expr: Expr.Get): Any? {
+    val instance = evaluate(expr.instance)
+    if (instance !is LoxInstance) {
+      throw RuntimeError(expr.name, "Only instances have properties")
+    }
+
+    return instance.get(expr.name)
+  }
+
   override fun visitTernaryExpr(expr: Expr.Ternary): Any? {
     val condition = evaluate(expr.condition)
     if (isTruthy(condition)) {
       return evaluate(expr.ifTrue)
     }
     return evaluate(expr.ifFalse)
+  }
+
+  override fun visitClassStmt(stmt: Stmt.Class) {
+    val methods = HashMap<String, LoxFunction>()
+    for (method in stmt.methods) {
+      val function = LoxFunction(method, environment, method.name.lexeme == "init")
+      methods[method.name.lexeme] = function
+    }
+
+    val loxClass = LoxClass(stmt.name.lexeme, methods)
+    define(stmt.name, loxClass)
+  }
+
+  override fun visitFunctionStmt(stmt: Stmt.Function) {
+    val function = LoxFunction(stmt, environment, false)
+    define(stmt.name, function)
+  }
+
+  override fun visitVarStmt(stmt: Stmt.Var) {
+    stmt.initializer?.run {
+      define(stmt.name, evaluate(this))
+    } ?:run {
+      declare(stmt.name)
+    }
   }
 
   override fun visitExpressionStmt(stmt: Stmt.Expression) {
@@ -147,22 +180,8 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     throw ControlFlowException.Break()
   }
 
-  override fun visitVariableExpr(expr: Expr.Variable): Any? {
-    return lookUpVariable(expr.name, expr)
-  }
-
-  override fun visitFunctionStmt(stmt: Stmt.Function) {
-    val function = LoxFunction(stmt, environment)
-    define(stmt.name, function)
-  }
-
-  override fun visitVarStmt(stmt: Stmt.Var) {
-    stmt.initializer?.run {
-      define(stmt.name, evaluate(this))
-    } ?:run {
-      environment?.declare()
-          ?: run { globals[stmt.name.lexeme] = null }
-    }
+  override fun visitBlockStmt(stmt: Stmt.Block) {
+    executeBlock(stmt.statements, Environment(this.environment))
   }
 
   override fun visitAssignExpr(expr: Expr.Assign): Any? {
@@ -173,6 +192,21 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
       environment!!.assignAt(distance.depth, distance.slot, value)
     } ?:let { globals.assign(expr.name, value) }
     return value
+  }
+
+  override fun visitSetExpr(expr: Expr.Set): Any? {
+    val instance = evaluate(expr.instance)
+    if (instance !is LoxInstance) {
+      throw RuntimeError(expr.name, "Only instances have fields.");
+    }
+
+    val value = evaluate(expr.value)
+    instance.set(expr.name, value)
+    return value
+  }
+
+  override fun visitThisExpr(expr: Expr.This): Any? {
+    return lookUpVariable(expr.keyword, expr)
   }
 
   override fun visitLogicalExpr(expr: Expr.Logical): Any? {
@@ -187,8 +221,8 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     return evaluate(expr.right)
   }
 
-  override fun visitBlockStmt(stmt: Stmt.Block) {
-    executeBlock(stmt.statements, Environment(this.environment))
+  override fun visitVariableExpr(expr: Expr.Variable): Any? {
+    return lookUpVariable(expr.name, expr)
   }
 
   fun executeBlock(stmtList: List<Stmt?>, environment: Environment) {
@@ -266,6 +300,11 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
       if (environment == null) { throw InternalCompilerError("static name resolution failed") }
       environment!!.getAt(distance.depth, distance.slot)
     } else globals[name]
+  }
+
+  private fun declare(name: Token) {
+    environment?.declare()
+        ?: run { globals[name.lexeme] = null }
   }
 
   private fun define(name: Token, value: Any?) {

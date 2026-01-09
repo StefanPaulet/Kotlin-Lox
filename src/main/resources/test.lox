@@ -1,14 +1,8 @@
-fun thrice(fn) {
-  var i = 3;
-  for (var i = 1; i <= 3; i = i + 1) {
-    fn(i);
+class Foo {
+  init() {
+    return;
+    print 5;
   }
-  return i;
 }
 
-print thrice(fun (a) {
-  print a;
-});
-// "1".
-// "2".
-// "3".
+print Foo();

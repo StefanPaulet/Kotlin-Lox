@@ -43,6 +43,11 @@ abstract class Stmt {
       return visitor.visitBlockStmt(this)
     }
 	}
+	class Class(val name: Token, val methods: List<Stmt.Function>, ) : Stmt() {
+    override fun <R> accept(visitor: Visitor<R>): R {
+      return visitor.visitClassStmt(this)
+    }
+	}
 	class Break(val keyword: Token, ) : Stmt() {
     override fun <R> accept(visitor: Visitor<R>): R {
       return visitor.visitBreakStmt(this)
@@ -57,6 +62,7 @@ abstract class Stmt {
 		fun visitWhileStmt(stmt: While): R
 		fun visitVarStmt(stmt: Var): R
 		fun visitBlockStmt(stmt: Block): R
+		fun visitClassStmt(stmt: Class): R
 		fun visitBreakStmt(stmt: Break): R
 	}
 }

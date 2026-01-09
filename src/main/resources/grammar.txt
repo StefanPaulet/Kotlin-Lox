@@ -1,5 +1,6 @@
 program        → declaration* EOF ;
-declaration    → funDecl
+declaration    → classDecl
+               | funDecl
                | varDecl
                | statement ;
 statement      → expressionStmt
@@ -11,6 +12,7 @@ statement      → expressionStmt
                | breakStmt
                | block ;
 
+classDecl      → "class" IDENTIFIER "{" function* "}" ;
 funDecl        → "fun" function ;
 function       → IDENTIFIER "(" parameters? ")" block ;
 varDecl        → "var" IDENTIFIER ("=" expression)? ";" ;
@@ -28,7 +30,7 @@ block          → "{" declaration * "}" ;
 expression     → assignmentExpr ("," assignmentExpr)* ;
 assignmentExpr → assignment
                | lambdaExpr ;
-assignment     → IDENTIFIER "=" assignment
+assignment     → (call ".")? IDENTIFIER "=" assignment
                | logic_or ;
 logic_or       → logic_and ( "or" logic_and )* ;
 logic_and      → ternary ( "and" ternary )* ;
@@ -39,7 +41,7 @@ term           → factor ( ( "-" | "+" ) factor )* ;
 factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
                | call ;
-call           → primary ( "(" arguments? ")" )* ;
+call           → primary ( ("(" arguments? ")") | ("." IDENTIFIER) )* ;
 primary        → NUMBER | STRING
                | "true" | "false" | "nil"
                | "(" expression ")"

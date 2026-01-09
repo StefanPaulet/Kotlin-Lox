@@ -7,6 +7,13 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
     NONE,
     FUNCTION,
     LAMBDA,
+    METHOD,
+    INITIALIZER,
+  }
+
+  private enum class ClassType {
+    NONE,
+    CLASS
   }
 
   private class Variable(val token: Token, val slot: Int) {
@@ -15,16 +22,36 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
       DEFINED,
       USED
     }
+
+    constructor (token: Token, slot: Int, usage: Usage) : this(token, slot)  {
+      this.usage = usage
+    }
     var usage: Usage = Usage.DECLARED
   }
 
   private val scopes = Stack<MutableMap<String, Variable>>()
   private var currentFunction = FunctionType.NONE
+  private var currentClass = ClassType.NONE
   private var inLoop = false
 
   fun resolve(statements: List<Stmt?>) = statements.forEach { resolve(it) }
 
   override fun visitBlockStmt(stmt: Stmt.Block) = inScope { resolve(stmt.statements) }
+
+  override fun visitClassStmt(stmt: Stmt.Class) {
+    inClass(ClassType.CLASS) {
+      declare(stmt.name)
+      use(stmt.name)
+
+      inScope {
+        scopes.peek()["this"] = Variable(stmt.name, 0, Variable.Usage.USED)
+        for (method in stmt.methods) {
+          val type = if (method.name.lexeme == "init") FunctionType.INITIALIZER else FunctionType.METHOD
+          resolveFunction(method, type)
+        }
+      }
+    }
+  }
 
   override fun visitVarStmt(stmt: Stmt.Var) {
     declare(stmt.name)
@@ -105,7 +132,12 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
     if (currentFunction == FunctionType.NONE) {
       Lox.error(stmt.keyword, "Can't return from top-level code")
     }
-    stmt.expression?.let { resolve(it) } ?: Unit
+    stmt.expression?.let {
+      if (currentFunction == FunctionType.INITIALIZER) {
+        Lox.error(stmt.keyword, "Can't return a value from an initializer.")
+      }
+      resolve(it)
+    } ?: Unit
   }
   override fun visitWhileStmt(stmt: Stmt.While) {
     resolve(stmt.condition)
@@ -123,8 +155,23 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
     resolve(expr.callee)
     expr.arguments.forEach { resolve(it) }
   }
+  override fun visitGetExpr(expr: Expr.Get) = resolve(expr.instance)
+
   override fun visitGroupingExpr(expr: Expr.Grouping) = resolve(expr.expression)
   override fun visitLiteralExpr(expr: Expr.Literal) = Unit
+  override fun visitSetExpr(expr: Expr.Set) {
+    resolve(expr.value)
+    resolve(expr.instance)
+  }
+
+  override fun visitThisExpr(expr: Expr.This) {
+    if (currentClass == ClassType.NONE) {
+      Lox.error(expr.keyword, "Cannot use 'this' outside of a class.")
+      return
+    }
+    resolveLocal(expr, expr.keyword)
+  }
+
   override fun visitLogicalExpr(expr: Expr.Logical) {
     resolve(expr.left)
     resolve(expr.right)
@@ -151,6 +198,11 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
     scopes.peek()[name.lexeme]?.usage = Variable.Usage.DEFINED
   }
 
+  private fun use(name: Token) {
+    if (scopes.isEmpty()) return
+    scopes.peek()[name.lexeme]?.usage = Variable.Usage.USED
+  }
+
   private fun <R> inScope(callable: () -> R): R {
     beginScope()
     val retVal = callable()
@@ -172,6 +224,15 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
     currentFunction = type
     val retVal = callable()
     currentFunction = enclosingFunction
+
+    return retVal
+  }
+
+  private fun <R> inClass(type: ClassType, callable: () -> R): R {
+    val enclosingClass = currentClass
+    currentClass = type
+    val retVal = callable()
+    currentClass = enclosingClass
 
     return retVal
   }

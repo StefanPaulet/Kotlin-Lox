@@ -71,9 +71,12 @@ fun main(args: Array<String>) {
     "Assign   : Token name, Expr value",
     "Binary   : Expr left, Token operator, Expr right",
     "Call     : Expr callee, Token paren, List<Expr> arguments",
+    "Get      : Expr instance, Token name",
     "Grouping : Expr expression",
     "Literal  : Any? value",
     "Logical  : Expr left, Token operator, Expr right",
+    "Set      : Expr instance, Token name, Expr value",
+    "This     : Token keyword",
     "Unary    : Token operator, Expr right",
     "Ternary  : Expr condition, Expr ifTrue, Expr ifFalse",
     "Variable : Token name",
@@ -89,6 +92,7 @@ fun main(args: Array<String>) {
     "While      : Expr condition, Stmt body",
     "Var        : Token name, Expr? initializer",
     "Block      : List<Stmt?> statements",
+    "Class      : Token name, List<Stmt.Function> methods",
     "Break      : Token keyword",
   ))
 }

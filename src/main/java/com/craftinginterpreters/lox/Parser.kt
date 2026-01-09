@@ -23,6 +23,7 @@ class Parser(val tokens: List<Token>) {
 
   private fun declaration(): Stmt? {
     return try {
+      if (match(TokenType.CLASS)) return classDeclaration()
       if (match(TokenType.FUN)) return funDeclaration("function")
       if (match(TokenType.VAR)) return varDeclaration()
       statement()
@@ -30,6 +31,20 @@ class Parser(val tokens: List<Token>) {
       synchronize()
       null
     }
+  }
+
+  private fun classDeclaration(): Stmt {
+    val name = consume(TokenType.IDENTIFIER, "Expected class name.")
+
+    consume(TokenType.LEFT_BRACE, "Expected '{' before class body.")
+
+    val methods = mutableListOf<Stmt.Function>()
+    while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+      methods.add(funDeclaration("method") as Stmt.Function)
+    }
+
+    consume(TokenType.RIGHT_BRACE, "Expected '}' after class body.")
+    return Stmt.Class(name, methods)
   }
 
   private fun funDeclaration(kind: String): Stmt {
@@ -167,9 +182,8 @@ class Parser(val tokens: List<Token>) {
       val equals = previous()
       val value = assignment()
 
-      if (expr is Expr.Variable) {
-        return Expr.Assign(expr.name, value)
-      }
+      if (expr is Expr.Variable) { return Expr.Assign(expr.name, value) }
+      else if (expr is Expr.Get) { return Expr.Set(expr.instance, expr.name, value) }
       error(equals, "Invalid assignment target")
     }
 
@@ -278,11 +292,11 @@ class Parser(val tokens: List<Token>) {
   private fun call(): Expr {
     var expr = primary()
     while (true) {
-      if (match(TokenType.LEFT_PAREN)) {
-        expr = finishCall(expr)
-      } else {
-        break
-      }
+      if (match(TokenType.LEFT_PAREN)) { expr = finishCall(expr) }
+      else if (match(TokenType.DOT)){
+        val name = consume(TokenType.IDENTIFIER, "Expected property name after '.'.")
+        expr = Expr.Get(expr, name)
+      } else { break }
     }
     return expr
   }
@@ -309,6 +323,7 @@ class Parser(val tokens: List<Token>) {
       consume(TokenType.RIGHT_PAREN, "Expected ')' after expression.")
       return Expr.Grouping(expr)
     }
+    if (match(TokenType.THIS)) return Expr.This(previous())
     if (match(TokenType.IDENTIFIER)) {
       return Expr.Variable(previous())
     }
