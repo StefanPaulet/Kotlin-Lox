@@ -9,6 +9,7 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
     LAMBDA,
     METHOD,
     INITIALIZER,
+    STATIC_METHOD,
   }
 
   private enum class ClassType {
@@ -48,6 +49,9 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
         for (method in stmt.methods) {
           val type = if (method.name.lexeme == "init") FunctionType.INITIALIZER else FunctionType.METHOD
           resolveFunction(method, type)
+        }
+        for (method in stmt.staticMethods) {
+          resolveFunction(method, FunctionType.STATIC_METHOD)
         }
       }
     }

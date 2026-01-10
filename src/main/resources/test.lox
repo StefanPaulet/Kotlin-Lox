@@ -1,8 +1,22 @@
-class Foo {
-  init() {
-    return;
-    print 5;
+class Math {
+  class square(n) {
+    this.x = n * n;
+    print this;
+    return n * n;
+  }
+
+  class printX() {
+    print this.x;
+  }
+
+  printX() {
+    print this.x;
   }
 }
 
-print Foo();
+print Math.square(3);
+Math.printX();
+var m = Math();
+m.x = 5;
+m.printX();
+print m;

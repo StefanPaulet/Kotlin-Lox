@@ -12,7 +12,7 @@ statement      → expressionStmt
                | breakStmt
                | block ;
 
-classDecl      → "class" IDENTIFIER "{" function* "}" ;
+classDecl      → "class" IDENTIFIER "{" ("class"? function)* "}" ;
 funDecl        → "fun" function ;
 function       → IDENTIFIER "(" parameters? ")" block ;
 varDecl        → "var" IDENTIFIER ("=" expression)? ";" ;
@@ -45,6 +45,7 @@ call           → primary ( ("(" arguments? ")") | ("." IDENTIFIER) )* ;
 primary        → NUMBER | STRING
                | "true" | "false" | "nil"
                | "(" expression ")"
+               | "this"
                | IDENTIFIER ;
 lambdaExpr     → "fun" "(" parameters? ")" block ;
 

@@ -92,7 +92,7 @@ fun main(args: Array<String>) {
     "While      : Expr condition, Stmt body",
     "Var        : Token name, Expr? initializer",
     "Block      : List<Stmt?> statements",
-    "Class      : Token name, List<Stmt.Function> methods",
+    "Class      : Token name, List<Stmt.Function> methods, List<Stmt.Function> staticMethods",
     "Break      : Token keyword",
   ))
 }

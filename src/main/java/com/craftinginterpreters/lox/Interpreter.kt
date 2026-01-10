@@ -125,7 +125,13 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
       methods[method.name.lexeme] = function
     }
 
-    val loxClass = LoxClass(stmt.name.lexeme, methods)
+    val staticMethods = HashMap<String, LoxFunction>()
+    for (method in stmt.staticMethods) {
+      val function = LoxFunction(method, environment, false)
+      staticMethods[method.name.lexeme] = function
+    }
+
+    val loxClass = LoxClass(stmt.name.lexeme, methods, staticMethods)
     define(stmt.name, loxClass)
   }
 
