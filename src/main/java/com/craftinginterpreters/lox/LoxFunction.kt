@@ -24,7 +24,9 @@ class LoxFunction(val declaration: Stmt.Function, val closure: Environment?, val
     return LoxFunction(declaration, environment, isInitializer)
   }
 
-  override fun arity(): Int = declaration.params.size
+  fun isGetter() = declaration.params == null
+
+  override fun arity(): Int = declaration.params?.size ?: 0
 
   override fun toString(): String = "<fn ${declaration.name.lexeme}>"
 }

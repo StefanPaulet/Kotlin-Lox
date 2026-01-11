@@ -85,7 +85,7 @@ fun main(args: Array<String>) {
 
   GenerateAst.defineAst(outputDir, "Stmt", arrayOf(
     "Expression : Expr expression",
-    "Function   : Token name, List<Token> params, List<Stmt?> body",
+    "Function   : Token name, List<Token>? params, List<Stmt?> body",
     "If         : Expr condition, Stmt thenBranch, Stmt? elseBranch",
     "Print      : Expr expression",
     "Return     : Token keyword, Expr? expression",

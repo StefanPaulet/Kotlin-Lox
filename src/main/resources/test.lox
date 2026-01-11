@@ -1,22 +1,12 @@
-class Math {
-  class square(n) {
-    this.x = n * n;
-    print this;
-    return n * n;
+class Circle {
+  init(radius) {
+    this.radius = radius;
   }
 
-  class printX() {
-    print this.x;
-  }
-
-  printX() {
-    print this.x;
+  area {
+    return 3.141592653 * this.radius * this.radius;
   }
 }
 
-print Math.square(3);
-Math.printX();
-var m = Math();
-m.x = 5;
-m.printX();
-print m;
+var circle = Circle(4);
+print circle.area;

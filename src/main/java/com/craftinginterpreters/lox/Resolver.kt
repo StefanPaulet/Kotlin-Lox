@@ -104,9 +104,9 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
   private fun resolveFunction(func: Stmt.Function, type: FunctionType) {
     inFunction(type) {
       inScope {
-        for (param in func.params) {
-          declare(param)
-          define(param)
+        func.params?.forEach { param ->
+            declare(param)
+            define(param)
         }
         resolve(func.body)
       }

@@ -14,7 +14,7 @@ statement      → expressionStmt
 
 classDecl      → "class" IDENTIFIER "{" ("class"? function)* "}" ;
 funDecl        → "fun" function ;
-function       → IDENTIFIER "(" parameters? ")" block ;
+function       → IDENTIFIER ("(" parameters? ")")? block ;
 varDecl        → "var" IDENTIFIER ("=" expression)? ";" ;
 
 expressionStmt → commaExpr ";" ;

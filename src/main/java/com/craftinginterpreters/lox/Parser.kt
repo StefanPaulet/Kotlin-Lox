@@ -54,20 +54,25 @@ class Parser(val tokens: List<Token>) {
 
   private fun funDeclaration(kind: String): Stmt {
     val name = consume(TokenType.IDENTIFIER, "Expected $kind name.")
-    consume(TokenType.LEFT_PAREN, "Expected '(' after $kind name.")
-    val parameters = mutableListOf<Token>()
-    if (!check(TokenType.RIGHT_PAREN)) {
-      do {
-        if (parameters.size >= 255) {
-          error(peek(), "Can't have more than 255 parameters.")
-        }
-        parameters.add(consume(TokenType.IDENTIFIER, "Expected parameter name."))
-      } while(match(TokenType.COMMA))
+    var parameters: List<Token>? = null
+
+    if (kind != "method" || check(TokenType.LEFT_PAREN)) {
+      parameters = mutableListOf()
+      consume(TokenType.LEFT_PAREN, "Expected '(' after $kind name.")
+      if (!check(TokenType.RIGHT_PAREN)) {
+        do {
+          if (parameters.size >= 255) {
+            error(peek(), "Can't have more than 255 parameters.")
+          }
+          parameters.add(consume(TokenType.IDENTIFIER, "Expected parameter name."))
+        } while(match(TokenType.COMMA))
+      }
+      consume(TokenType.RIGHT_PAREN, "Expected ')' after parameters of function.")
     }
-    consume(TokenType.RIGHT_PAREN, "Expected ')' after parameters of function.")
 
     consume(TokenType.LEFT_BRACE, "Expected '{' before $kind body.")
     val body = block()
+
     return Stmt.Function(name, parameters, body)
   }
 
