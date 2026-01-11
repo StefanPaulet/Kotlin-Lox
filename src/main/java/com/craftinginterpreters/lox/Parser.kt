@@ -4,6 +4,20 @@ class Parser(val tokens: List<Token>) {
   private var current = 0
 
   private class ParserError: RuntimeException()
+  private enum class FunctionType {
+    FUNCTION,
+    LAMBDA,
+    METHOD,
+    STATIC_METHOD;
+
+    override fun toString(): String {
+      return when (this) {
+        FUNCTION      -> "function"
+        LAMBDA        -> "anonymous_function"
+        METHOD        -> "method"
+        STATIC_METHOD -> "static method"
+      }
+    }}
 
   fun parse(): List<Stmt?> {
     val stmtList = ArrayList<Stmt?>()
@@ -24,7 +38,10 @@ class Parser(val tokens: List<Token>) {
   private fun declaration(): Stmt? {
     return try {
       if (match(TokenType.CLASS)) return classDeclaration()
-      if (match(TokenType.FUN)) return funDeclaration("function")
+      if (check(TokenType.FUN) && checkNext(TokenType.IDENTIFIER)) {
+        consume(TokenType.FUN, "")
+        return funDeclaration(FunctionType.FUNCTION)
+      }
       if (match(TokenType.VAR)) return varDeclaration()
       statement()
     } catch (_: ParserError) {
@@ -42,9 +59,9 @@ class Parser(val tokens: List<Token>) {
     val staticMethods = mutableListOf<Stmt.Function>()
     while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
       if (match(TokenType.CLASS)) {
-        staticMethods.add(funDeclaration("static_method") as Stmt.Function)
+        staticMethods.add(funDeclaration(FunctionType.STATIC_METHOD) as Stmt.Function)
       } else {
-        methods.add(funDeclaration("method") as Stmt.Function)
+        methods.add(funDeclaration(FunctionType.METHOD) as Stmt.Function)
       }
     }
 
@@ -52,11 +69,16 @@ class Parser(val tokens: List<Token>) {
     return Stmt.Class(name, methods, staticMethods)
   }
 
-  private fun funDeclaration(kind: String): Stmt {
+  private fun funDeclaration(kind: FunctionType): Stmt {
     val name = consume(TokenType.IDENTIFIER, "Expected $kind name.")
+    val (parameters, body) = functionBody(kind)
+    return Stmt.Function(name, parameters, body)
+  }
+
+  private fun functionBody(kind: FunctionType): Pair<List<Token>?, List<Stmt?>> {
     var parameters: List<Token>? = null
 
-    if (kind != "method" || check(TokenType.LEFT_PAREN)) {
+    if (kind != FunctionType.METHOD || check(TokenType.LEFT_PAREN)) {
       parameters = mutableListOf()
       consume(TokenType.LEFT_PAREN, "Expected '(' after $kind name.")
       if (!check(TokenType.RIGHT_PAREN)) {
@@ -73,7 +95,7 @@ class Parser(val tokens: List<Token>) {
     consume(TokenType.LEFT_BRACE, "Expected '{' before $kind body.")
     val body = block()
 
-    return Stmt.Function(name, parameters, body)
+    return Pair(parameters, body)
   }
 
   private fun varDeclaration(): Stmt {
@@ -171,19 +193,14 @@ class Parser(val tokens: List<Token>) {
   }
 
   private fun expression(): Expr {
-    var expr = assignmentExpr()
+    var expr = assignment()
     while (match(TokenType.COMMA)) {
       val comma = previous()
-      val right = assignmentExpr()
+      val right = assignment()
       expr = Expr.Binary(expr, comma, right)
     }
 
     return expr
-  }
-
-  private fun assignmentExpr(): Expr {
-    if (match(TokenType.FUN)) return lambda()
-    return assignment()
   }
 
   private fun assignment(): Expr {
@@ -316,7 +333,7 @@ class Parser(val tokens: List<Token>) {
     if (!check(TokenType.RIGHT_PAREN)) {
       do {
         if (arguments.size >= 255) { error(peek(), "Can't have more than 255 arguments.") }
-        arguments.add(assignmentExpr())
+        arguments.add(assignment())
       } while (match(TokenType.COMMA))
     }
     val paren = consume(TokenType.RIGHT_PAREN, "Expected ')' after arguments of function call.")
@@ -334,6 +351,7 @@ class Parser(val tokens: List<Token>) {
       return Expr.Grouping(expr)
     }
     if (match(TokenType.THIS)) return Expr.This(previous())
+    if (match(TokenType.FUN)) return lambda()
     if (match(TokenType.IDENTIFIER)) {
       return Expr.Variable(previous())
     }
@@ -343,21 +361,10 @@ class Parser(val tokens: List<Token>) {
 
   private fun lambda(): Expr {
     val head = previous()
-    consume(TokenType.LEFT_PAREN, "Expected '(' after lambda name.")
-    val parameters = mutableListOf<Token>()
-    if (!check(TokenType.RIGHT_PAREN)) {
-      do {
-        if (parameters.size >= 255) {
-          error(peek(), "Can't have more than 255 parameters.")
-        }
-        parameters.add(consume(TokenType.IDENTIFIER, "Expected parameter name."))
-      } while(match(TokenType.COMMA))
-    }
-    consume(TokenType.RIGHT_PAREN, "Expected ')' after parameters of function.")
+    val (parameters, body) = functionBody(FunctionType.LAMBDA)
+    assert(parameters != null)
 
-    consume(TokenType.LEFT_BRACE, "Expected '{' before lambda body.")
-    val body = block()
-    return Expr.Lambda(head, parameters, body)
+    return Expr.Lambda(head, parameters!!, body)
   }
 
   private fun synchronize() {
@@ -398,6 +405,7 @@ class Parser(val tokens: List<Token>) {
   }
 
   private fun check(type: TokenType) = !isAtEnd() && peek().type == type
+  private fun checkNext(type: TokenType) = !isAtEnd() && tokens[current + 1].type == type
 
   private fun advance(): Token {
     if (!isAtEnd()) {

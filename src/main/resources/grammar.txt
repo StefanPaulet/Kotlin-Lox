@@ -14,7 +14,8 @@ statement      → expressionStmt
 
 classDecl      → "class" IDENTIFIER "{" ("class"? function)* "}" ;
 funDecl        → "fun" function ;
-function       → IDENTIFIER ("(" parameters? ")")? block ;
+function       → IDENTIFIER functionBody ;
+functionBody   → ("(" parameters? ")")? block
 varDecl        → "var" IDENTIFIER ("=" expression)? ";" ;
 
 expressionStmt → commaExpr ";" ;
@@ -27,9 +28,7 @@ whileStmt      → "while" "(" expression ")" statement ;
 breakStmt      → "break" ";" ;
 block          → "{" declaration * "}" ;
 
-expression     → assignmentExpr ("," assignmentExpr)* ;
-assignmentExpr → assignment
-               | lambdaExpr ;
+expression     → assignment ("," assignment)* ;
 assignment     → (call ".")? IDENTIFIER "=" assignment
                | logic_or ;
 logic_or       → logic_and ( "or" logic_and )* ;
@@ -46,8 +45,9 @@ primary        → NUMBER | STRING
                | "true" | "false" | "nil"
                | "(" expression ")"
                | "this"
+               | lambdaExpr
                | IDENTIFIER ;
-lambdaExpr     → "fun" "(" parameters? ")" block ;
+lambdaExpr     → "fun" functionBody ;
 
-arguments      → assignmentExpr ( "," assignmentExpr )* ;
+arguments      → assignment ( "," assignment )* ;
 parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
