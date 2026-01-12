@@ -1,11 +1,11 @@
 package com.craftinginterpreters.lox
 
 class LoxClass(
-    val name: String, val methods: HashMap<String, LoxFunction>,
+    val name: String, val superclass: LoxClass?, val methods: HashMap<String, LoxFunction>,
     staticMethods: HashMap<String, LoxFunction>?,
-) : LoxCallable, LoxInstance(staticMethods?.let {LoxClass("$name metaclass", it, null)}) {
+) : LoxCallable, LoxInstance(staticMethods?.let {LoxClass("$name metaclass", null, it, null)}) {
 
-  fun findMethod(name: String): LoxFunction? = methods[name]
+  fun findMethod(name: String): LoxFunction? = methods[name] ?: superclass?.findMethod(name)
 
   override fun call(interpreter: Interpreter, arguments: List<Any?>): Any {
     val instance = LoxInstance(this)

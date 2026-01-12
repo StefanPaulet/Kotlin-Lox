@@ -12,7 +12,7 @@ statement      → expressionStmt
                | breakStmt
                | block ;
 
-classDecl      → "class" IDENTIFIER "{" ("class"? function)* "}" ;
+classDecl      → "class" IDENTIFIER ("<" IDENTIFIER)? "{" ("class"? function)* "}" ;
 funDecl        → "fun" function ;
 function       → IDENTIFIER functionBody ;
 functionBody   → ("(" parameters? ")")? block
@@ -46,6 +46,7 @@ primary        → NUMBER | STRING
                | "(" expression ")"
                | "this"
                | lambdaExpr
+               | "super" "." IDENTIFIER
                | IDENTIFIER ;
 lambdaExpr     → "fun" functionBody ;
 

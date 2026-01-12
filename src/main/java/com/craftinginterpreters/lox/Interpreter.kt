@@ -124,6 +124,16 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
   }
 
   override fun visitClassStmt(stmt: Stmt.Class) {
+    val superclass = stmt.superclass?.let {
+      val superclass = evaluate(it)
+      if (superclass !is LoxClass) {
+        throw RuntimeError(it.name, "Superclass must be a class.")
+      }
+      environment = Environment(environment)
+      environment!!.define(superclass)
+      superclass
+    }
+
     val methods = HashMap<String, LoxFunction>()
     for (method in stmt.methods) {
       val function = LoxFunction(method, environment, method.name.lexeme == "init")
@@ -136,7 +146,9 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
       staticMethods[method.name.lexeme] = function
     }
 
-    val loxClass = LoxClass(stmt.name.lexeme, methods, staticMethods)
+    val loxClass = LoxClass(stmt.name.lexeme, superclass, methods, staticMethods)
+    superclass?.let { environment = environment!!.enclosing }
+
     define(stmt.name, loxClass)
   }
 
@@ -214,6 +226,15 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     val value = evaluate(expr.value)
     instance.set(expr.name, value)
     return value
+  }
+
+  override fun visitSuperExpr(expr: Expr.Super): Any? {
+    val distance = locals[expr] ?: throw RuntimeError(expr.keyword, "Static name resolution failed")
+    val superclass = environment!!.getAt(distance.depth, distance.slot) as LoxClass
+    val instance = environment!!.getAt(distance.depth - 1, 0) as LoxInstance
+    val method = superclass.findMethod(expr.method.lexeme)
+    return method?.bind(instance) ?:
+      throw RuntimeError(expr.method, "Undefined property '${expr.method.lexeme}'.")
   }
 
   override fun visitThisExpr(expr: Expr.This): Any? {

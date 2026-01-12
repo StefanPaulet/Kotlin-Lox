@@ -76,6 +76,7 @@ fun main(args: Array<String>) {
     "Literal  : Any? value",
     "Logical  : Expr left, Token operator, Expr right",
     "Set      : Expr instance, Token name, Expr value",
+    "Super    : Token keyword, Token method",
     "This     : Token keyword",
     "Unary    : Token operator, Expr right",
     "Ternary  : Expr condition, Expr ifTrue, Expr ifFalse",
@@ -92,7 +93,7 @@ fun main(args: Array<String>) {
     "While      : Expr condition, Stmt body",
     "Var        : Token name, Expr? initializer",
     "Block      : List<Stmt?> statements",
-    "Class      : Token name, List<Stmt.Function> methods, List<Stmt.Function> staticMethods",
+    "Class      : Token name, Expr.Variable? superclass, List<Function> methods, List<Function> staticMethods",
     "Break      : Token keyword",
   ))
 }
