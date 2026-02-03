@@ -46,7 +46,7 @@ primary        → NUMBER | STRING
                | "(" expression ")"
                | "this"
                | lambdaExpr
-               | "super" "." IDENTIFIER
+               | "inner"
                | IDENTIFIER ;
 lambdaExpr     → "fun" functionBody ;
 

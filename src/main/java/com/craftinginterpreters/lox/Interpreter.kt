@@ -83,6 +83,10 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     return LoxAnonymousFunction(expr, environment)
   }
 
+  override fun visitInnerExpr(expr: Expr.Inner): Any? {
+    return lookUpVariable(expr.keyword, expr)
+  }
+
   override fun visitCallExpr(expr: Expr.Call): Any? {
     val callee = evaluate(expr.callee)
     val arguments = mutableListOf<Any?>()
@@ -91,6 +95,9 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     }
 
     if (callee !is LoxCallable) {
+      if (callee == null && expr.callee is Expr.Inner) {
+        return null
+      }
       throw RuntimeError(expr.paren, "Can only call functions and classes.")
     }
 
@@ -129,8 +136,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
       if (superclass !is LoxClass) {
         throw RuntimeError(it.name, "Superclass must be a class.")
       }
-      environment = Environment(environment)
-      environment!!.define(superclass)
+      environment = Environment(environment).apply { define(superclass) }
       superclass
     }
 
@@ -226,15 +232,6 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     val value = evaluate(expr.value)
     instance.set(expr.name, value)
     return value
-  }
-
-  override fun visitSuperExpr(expr: Expr.Super): Any? {
-    val distance = locals[expr] ?: throw RuntimeError(expr.keyword, "Static name resolution failed")
-    val superclass = environment!!.getAt(distance.depth, distance.slot) as LoxClass
-    val instance = environment!!.getAt(distance.depth - 1, 0) as LoxInstance
-    val method = superclass.findMethod(expr.method.lexeme)
-    return method?.bind(instance) ?:
-      throw RuntimeError(expr.method, "Undefined property '${expr.method.lexeme}'.")
   }
 
   override fun visitThisExpr(expr: Expr.This): Any? {

@@ -48,6 +48,7 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
       val resolveClassBody: () -> Unit = {
         inScope {
           scopes.peek()["this"] = Variable(stmt.name, 0, Variable.Usage.USED)
+          scopes.peek()["inner"] = Variable(stmt.name, 1, Variable.Usage.USED)
           for (method in stmt.methods) {
             val type = if (method.name.lexeme == "init") FunctionType.INITIALIZER else FunctionType.METHOD
             resolveFunction(method, type)
@@ -185,11 +186,10 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
     resolve(expr.instance)
   }
 
-  override fun visitSuperExpr(expr: Expr.Super) {
-    when (currentClass) {
-      ClassType.NONE -> Lox.error(expr.keyword, "Cannot use 'super' outside of a class.")
-      ClassType.CLASS -> Lox.error(expr.keyword, "Cannot use 'super' in a class with no superclass.")
-      else -> Unit
+  override fun visitInnerExpr(expr: Expr.Inner) {
+    if (currentClass == ClassType.NONE) {
+      Lox.error(expr.keyword, "Cannot use 'inner' outside of a class.")
+      return
     }
     resolveLocal(expr, expr.keyword)
   }

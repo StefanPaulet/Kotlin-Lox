@@ -18,9 +18,10 @@ class LoxFunction(val declaration: Stmt.Function, val closure: Environment?, val
     return null
   }
 
-  fun bind(instance: LoxInstance): LoxFunction {
+  fun bind(instance: LoxInstance, inner: LoxFunction?): LoxFunction {
     val environment = Environment(closure)
     environment.define(instance)
+    environment.define(inner)
     return LoxFunction(declaration, environment, isInitializer)
   }
 

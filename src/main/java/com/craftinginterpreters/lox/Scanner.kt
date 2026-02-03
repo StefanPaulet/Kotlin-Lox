@@ -145,7 +145,7 @@ class Scanner(val source: String) {
       "or" to TokenType.OR,
       "print" to TokenType.PRINT,
       "return" to TokenType.RETURN,
-      "super" to TokenType.SUPER,
+      "inner" to TokenType.INNER,
       "this" to TokenType.THIS,
       "true" to TokenType.TRUE,
       "var" to TokenType.VAR,

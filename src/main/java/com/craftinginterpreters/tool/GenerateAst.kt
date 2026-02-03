@@ -76,7 +76,7 @@ fun main(args: Array<String>) {
     "Literal  : Any? value",
     "Logical  : Expr left, Token operator, Expr right",
     "Set      : Expr instance, Token name, Expr value",
-    "Super    : Token keyword, Token method",
+    "Inner    : Token keyword",
     "This     : Token keyword",
     "Unary    : Token operator, Expr right",
     "Ternary  : Expr condition, Expr ifTrue, Expr ifFalse",

@@ -357,12 +357,7 @@ class Parser(val tokens: List<Token>) {
     }
     if (match(TokenType.THIS)) return Expr.This(previous())
     if (match(TokenType.FUN)) return lambda()
-    if (match(TokenType.SUPER)) {
-      val keyword = previous()
-      consume(TokenType.DOT, "Expected '.' after 'super'.")
-      val method = consume(TokenType.IDENTIFIER, "Expected superclass method name.")
-      return Expr.Super(keyword, method)
-    }
+    if (match(TokenType.INNER)) return Expr.Inner(previous())
     if (match(TokenType.IDENTIFIER)) {
       return Expr.Variable(previous())
     }

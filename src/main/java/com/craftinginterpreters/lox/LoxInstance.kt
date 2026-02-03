@@ -10,8 +10,8 @@ open class LoxInstance(val klass: LoxClass?) {
       return fields[name.lexeme]
     }
 
-    val method = klass?.findMethod(name.lexeme)
-    if (method != null) return method.bind(this)
+    val method = klass?.findMethod(name.lexeme, this)
+    if (method != null) return method
 
     throw RuntimeError(name,"Undefined property '${name.lexeme}'.")
   }

@@ -1,20 +1,25 @@
-class A {
-  method() {
-    print "A method";
+class Doughnut {
+  cook() {
+    print "Fry until golden brown.";
+    inner();
+    print "Place in a nice box.";
   }
 }
 
-class B < A {
-  method() {
-    print "B method";
-  }
-
-  test() {
-    super.method();
+class BostonCream < Doughnut {
+  cook() {
+    print "Pipe full of custard and coat with chocolate.";
   }
 }
 
-class C < B {}
+class Smth < BostonCream {
+  cook() {
+    print "Smth";
+  }
+}
 
-C().test();
-A().method();
+Smth().cook();
+print("-----");
+BostonCream().cook();
+print("-----");
+Doughnut().cook();

@@ -43,9 +43,9 @@ abstract class Expr {
       return visitor.visitSetExpr(this)
     }
 	}
-	class Super(val keyword: Token, val method: Token, ) : Expr() {
+	class Inner(val keyword: Token, ) : Expr() {
     override fun <R> accept(visitor: Visitor<R>): R {
-      return visitor.visitSuperExpr(this)
+      return visitor.visitInnerExpr(this)
     }
 	}
 	class This(val keyword: Token, ) : Expr() {
@@ -82,7 +82,7 @@ abstract class Expr {
 		fun visitLiteralExpr(expr: Literal): R
 		fun visitLogicalExpr(expr: Logical): R
 		fun visitSetExpr(expr: Set): R
-		fun visitSuperExpr(expr: Super): R
+		fun visitInnerExpr(expr: Inner): R
 		fun visitThisExpr(expr: This): R
 		fun visitUnaryExpr(expr: Unary): R
 		fun visitTernaryExpr(expr: Ternary): R
