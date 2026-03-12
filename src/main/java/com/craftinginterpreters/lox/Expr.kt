@@ -33,6 +33,11 @@ abstract class Expr {
       return visitor.visitLiteralExpr(this)
     }
 	}
+	class ArrayLiteral(val bracket: Token, val values: List<Expr>, ) : Expr() {
+    override fun <R> accept(visitor: Visitor<R>): R {
+      return visitor.visitArrayLiteralExpr(this)
+    }
+	}
 	class Logical(val left: Expr, val operator: Token, val right: Expr, ) : Expr() {
     override fun <R> accept(visitor: Visitor<R>): R {
       return visitor.visitLogicalExpr(this)
@@ -73,6 +78,16 @@ abstract class Expr {
       return visitor.visitLambdaExpr(this)
     }
 	}
+	class SubscriptGet(val base: Expr, val bracket: Token, val index: Expr, ) : Expr() {
+    override fun <R> accept(visitor: Visitor<R>): R {
+      return visitor.visitSubscriptGetExpr(this)
+    }
+	}
+	class SubscriptSet(val base: Expr, val bracket: Token, val index: Expr, val value: Expr, ) : Expr() {
+    override fun <R> accept(visitor: Visitor<R>): R {
+      return visitor.visitSubscriptSetExpr(this)
+    }
+	}
 	interface Visitor<R> {
 		fun visitAssignExpr(expr: Assign): R
 		fun visitBinaryExpr(expr: Binary): R
@@ -80,6 +95,7 @@ abstract class Expr {
 		fun visitGetExpr(expr: Get): R
 		fun visitGroupingExpr(expr: Grouping): R
 		fun visitLiteralExpr(expr: Literal): R
+		fun visitArrayLiteralExpr(expr: ArrayLiteral): R
 		fun visitLogicalExpr(expr: Logical): R
 		fun visitSetExpr(expr: Set): R
 		fun visitSuperExpr(expr: Super): R
@@ -88,5 +104,7 @@ abstract class Expr {
 		fun visitTernaryExpr(expr: Ternary): R
 		fun visitVariableExpr(expr: Variable): R
 		fun visitLambdaExpr(expr: Lambda): R
+		fun visitSubscriptGetExpr(expr: SubscriptGet): R
+		fun visitSubscriptSetExpr(expr: SubscriptSet): R
 	}
 }

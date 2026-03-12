@@ -1,20 +1,7 @@
-class A {
-  method() {
-    print "A method";
-  }
-}
+var a = [1, [1, 2, 3], 3];
+print(a[1]);
 
-class B < A {
-  method() {
-    print "B method";
-  }
-
-  test() {
-    super.method();
-  }
-}
-
-class C < B {}
-
-C().test();
-A().method();
+class A {}
+a[2] = A();
+a[2].x = 3;
+print(a);

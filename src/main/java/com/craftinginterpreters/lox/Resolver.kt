@@ -176,10 +176,23 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
     resolve(expr.callee)
     expr.arguments.forEach { resolve(it) }
   }
+
+  override fun visitSubscriptGetExpr(expr: Expr.SubscriptGet) {
+    resolve(expr.base)
+    resolve(expr.index)
+  }
+
+  override fun visitSubscriptSetExpr(expr: Expr.SubscriptSet) {
+    resolve(expr.base)
+    resolve(expr.index)
+    resolve(expr.value)
+  }
+
   override fun visitGetExpr(expr: Expr.Get) = resolve(expr.instance)
 
   override fun visitGroupingExpr(expr: Expr.Grouping) = resolve(expr.expression)
   override fun visitLiteralExpr(expr: Expr.Literal) = Unit
+  override fun visitArrayLiteralExpr(expr: Expr.ArrayLiteral) = expr.values.forEach { resolve(it) }
   override fun visitSetExpr(expr: Expr.Set) {
     resolve(expr.value)
     resolve(expr.instance)

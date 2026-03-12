@@ -41,6 +41,10 @@ class AstPrinter : Expr.Visitor<String> {
     TODO("Not yet implemented")
   }
 
+  override fun visitArrayLiteralExpr(expr: Expr.ArrayLiteral): String {
+    TODO("Not yet implemented")
+  }
+
   override fun visitLambdaExpr(expr: Expr.Lambda): String {
     TODO("Not yet implemented")
   }
@@ -58,6 +62,14 @@ class AstPrinter : Expr.Visitor<String> {
   }
 
   override fun visitSuperExpr(expr: Expr.Super): String {
+    TODO("Not yet implemented")
+  }
+
+  override fun visitSubscriptGetExpr(expr: Expr.SubscriptGet): String {
+    TODO("Not yet implemented")
+  }
+
+  override fun visitSubscriptSetExpr(expr: Expr.SubscriptSet): String {
     TODO("Not yet implemented")
   }
 
