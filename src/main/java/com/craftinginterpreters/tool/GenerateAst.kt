@@ -68,20 +68,22 @@ fun main(args: Array<String>) {
 
   val outputDir = args[0]
   GenerateAst.defineAst(outputDir, "Expr", arrayOf(
-    "Assign   : Token name, Expr value",
-    "Binary   : Expr left, Token operator, Expr right",
-    "Call     : Expr callee, Token paren, List<Expr> arguments",
-    "Get      : Expr instance, Token name",
-    "Grouping : Expr expression",
-    "Literal  : Any? value",
-    "Logical  : Expr left, Token operator, Expr right",
-    "Set      : Expr instance, Token name, Expr value",
-    "Super    : Token keyword, Token method",
-    "This     : Token keyword",
-    "Unary    : Token operator, Expr right",
-    "Ternary  : Expr condition, Expr ifTrue, Expr ifFalse",
-    "Variable : Token name",
-    "Lambda   : Token head, List<Token> params, List<Stmt?> body"
+    "Assign       : Token name, Expr value",
+    "Binary       : Expr left, Token operator, Expr right",
+    "Call         : Expr callee, Token paren, List<Expr> arguments",
+    "Get          : Expr instance, Token name",
+    "Grouping     : Expr expression",
+    "Literal      : Any? value",
+    "Logical      : Expr left, Token operator, Expr right",
+    "Set          : Expr instance, Token name, Expr value",
+    "Super        : Token keyword, Token method",
+    "This         : Token keyword",
+    "Unary        : Token operator, Expr right",
+    "Ternary      : Expr condition, Expr ifTrue, Expr ifFalse",
+    "Variable     : Token name",
+    "Lambda       : Token head, List<Token> params, List<Stmt?> body",
+    "SubscriptGet : Expr base, Token bracket, Expr index",
+    "SubscriptSet : Expr base, Token bracket, Expr index, Expr value",
   ))
 
   GenerateAst.defineAst(outputDir, "Stmt", arrayOf(

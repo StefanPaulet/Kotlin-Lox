@@ -54,7 +54,7 @@ class Parser(val tokens: List<Token>) {
     val name = consume(TokenType.IDENTIFIER, "Expected class name.")
 
     val superclass = if (match(TokenType.LESS)) {
-      val name = consume(TokenType.IDENTIFIER, "Expected superclass name");
+      val name = consume(TokenType.IDENTIFIER, "Expected superclass name")
       Expr.Variable(name)
     } else null
 
@@ -214,9 +214,12 @@ class Parser(val tokens: List<Token>) {
       val equals = previous()
       val value = assignment()
 
-      if (expr is Expr.Variable) { return Expr.Assign(expr.name, value) }
-      else if (expr is Expr.Get) { return Expr.Set(expr.instance, expr.name, value) }
-      error(equals, "Invalid assignment target")
+      when (expr) {
+        is Expr.Variable -> return Expr.Assign(expr.name, value)
+        is Expr.Get -> return Expr.Set(expr.instance, expr.name, value)
+        is Expr.SubscriptGet -> return Expr.SubscriptSet(expr.base, expr.bracket, expr.index, value)
+        else -> error(equals, "Invalid assignment target")
+      }
     }
 
     return expr
@@ -324,11 +327,20 @@ class Parser(val tokens: List<Token>) {
   private fun call(): Expr {
     var expr = primary()
     while (true) {
-      if (match(TokenType.LEFT_PAREN)) { expr = finishCall(expr) }
-      else if (match(TokenType.DOT)){
-        val name = consume(TokenType.IDENTIFIER, "Expected property name after '.'.")
-        expr = Expr.Get(expr, name)
-      } else { break }
+      when {
+        match(TokenType.LEFT_PAREN) -> { expr = finishCall(expr) }
+        match(TokenType.DOT) -> {
+          val name = consume(TokenType.IDENTIFIER, "Expected property name after '.'.")
+          expr = Expr.Get(expr, name)
+        }
+        match(TokenType.LEFT_BRACKET) -> {
+          val bracket = previous()
+          val index = expression()
+          consume(TokenType.RIGHT_BRACKET, "Expected ']' after index.")
+          expr = Expr.SubscriptGet(expr, bracket, index)
+        }
+        else -> break
+      }
     }
     return expr
   }

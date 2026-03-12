@@ -73,6 +73,16 @@ abstract class Expr {
       return visitor.visitLambdaExpr(this)
     }
 	}
+	class SubscriptGet(val base: Expr, val bracket: Token, val index: Expr, ) : Expr() {
+    override fun <R> accept(visitor: Visitor<R>): R {
+      return visitor.visitSubscriptGetExpr(this)
+    }
+	}
+	class SubscriptSet(val base: Expr, val bracket: Token, val index: Expr, val value: Expr, ) : Expr() {
+    override fun <R> accept(visitor: Visitor<R>): R {
+      return visitor.visitSubscriptSetExpr(this)
+    }
+	}
 	interface Visitor<R> {
 		fun visitAssignExpr(expr: Assign): R
 		fun visitBinaryExpr(expr: Binary): R
@@ -88,5 +98,7 @@ abstract class Expr {
 		fun visitTernaryExpr(expr: Ternary): R
 		fun visitVariableExpr(expr: Variable): R
 		fun visitLambdaExpr(expr: Lambda): R
+		fun visitSubscriptGetExpr(expr: SubscriptGet): R
+		fun visitSubscriptSetExpr(expr: SubscriptSet): R
 	}
 }

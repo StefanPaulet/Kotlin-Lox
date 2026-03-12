@@ -61,6 +61,14 @@ class AstPrinter : Expr.Visitor<String> {
     TODO("Not yet implemented")
   }
 
+  override fun visitSubscriptGetExpr(expr: Expr.SubscriptGet): String {
+    TODO("Not yet implemented")
+  }
+
+  override fun visitSubscriptSetExpr(expr: Expr.SubscriptSet): String {
+    TODO("Not yet implemented")
+  }
+
   private fun parenthesize(name: String, vararg expressions: Expr): String {
     StringBuilder().run {
       append("($name")

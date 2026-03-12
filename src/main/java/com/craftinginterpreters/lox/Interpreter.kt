@@ -49,7 +49,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
         checkNumberOperands(expr.operator, left, right).let {(left, right) -> division(left, right)}
             ?: throw RuntimeError(expr.operator, "Cannot divide by 0")
       TokenType.PLUS -> addition(left, right) ?:
-        throw RuntimeError(expr.operator, "Addition operands must both be two doubles or two strings.")
+        throw RuntimeError(expr.operator, "Addition operands must have compatible types.")
       TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL ->
         (boolOps[type]?.let { func ->
           checkNumberOperands(expr.operator, left, right).let {(left, right) -> func(left, right) }
@@ -99,6 +99,37 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     }
 
     return callee.call(this, arguments)
+  }
+
+  override fun visitSubscriptGetExpr(expr: Expr.SubscriptGet): Any? {
+    val base = evaluate(expr.base)
+    if (base !is LoxIndexable) {
+      throw RuntimeError(expr.bracket, "Can only subscript into subscriptable objects.")
+    }
+
+    val index = evaluate(expr.index)
+    if (index !is Int) {
+      throw RuntimeError(expr.bracket, "Can only use integers as indices into subscriptable objects.")
+    }
+
+    return base[index]
+  }
+
+  override fun visitSubscriptSetExpr(expr: Expr.SubscriptSet): Any? {
+    val base = evaluate(expr.base)
+    if (base !is LoxIndexable) {
+      throw RuntimeError(expr.bracket, "Can only subscript into subscriptable objects.")
+    }
+
+    val index = evaluate(expr.index)
+    if (index !is Int) {
+      throw RuntimeError(expr.bracket, "Can only use integers as indices into subscriptable objects.")
+    }
+
+    val value = evaluate(expr.value)
+    base[index] = value
+
+    return value
   }
 
   override fun visitGetExpr(expr: Expr.Get): Any? {
@@ -228,7 +259,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     return value
   }
 
-  override fun visitSuperExpr(expr: Expr.Super): Any? {
+  override fun visitSuperExpr(expr: Expr.Super): Any {
     val distance = locals[expr] ?: throw RuntimeError(expr.keyword, "Static name resolution failed")
     val superclass = environment!!.getAt(distance.depth, distance.slot) as LoxClass
     val instance = environment!!.getAt(distance.depth - 1, 0) as LoxInstance
@@ -298,6 +329,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     if (left is String && right is String) return (left + right) as Any
     if (left is String) return (left + stringify(right)) as Any
     if (right is String) return (stringify(left) + right) as Any
+    if (left is LoxArray && right is LoxArray) return left.join(right)
 
     return null
   }

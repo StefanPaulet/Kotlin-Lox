@@ -18,7 +18,7 @@ class Scanner(val source: String) {
 
   private fun scanToken() {
     when (val c = advance()) {
-      '(', ')', '{', '}', ',', '.', '-', '+', ';', '*', ':', '?' -> {
+      '(', ')', '{', '}', ',', '.', '-', '+', ';', '*', ':', '?', '[', ']' -> {
         symbolTokenMap[c]?.run { addToken(this) } ?: assert(false)
       }
       '!', '=', '<', '>' -> {
@@ -165,7 +165,9 @@ class Scanner(val source: String) {
       ';' to TokenType.SEMICOLON,
       '*' to TokenType.STAR,
       ':' to TokenType.COLON,
-      '?' to TokenType.QUERY
+      '?' to TokenType.QUERY,
+      '[' to TokenType.LEFT_BRACKET,
+      ']' to TokenType.RIGHT_BRACKET,
     )
 
     val tentativeEqualComposedSymbolMap = mapOf(
