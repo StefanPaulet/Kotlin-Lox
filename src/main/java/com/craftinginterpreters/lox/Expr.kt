@@ -33,6 +33,11 @@ abstract class Expr {
       return visitor.visitLiteralExpr(this)
     }
 	}
+	class ArrayLiteral(val bracket: Token, val values: List<Expr>, ) : Expr() {
+    override fun <R> accept(visitor: Visitor<R>): R {
+      return visitor.visitArrayLiteralExpr(this)
+    }
+	}
 	class Logical(val left: Expr, val operator: Token, val right: Expr, ) : Expr() {
     override fun <R> accept(visitor: Visitor<R>): R {
       return visitor.visitLogicalExpr(this)
@@ -90,6 +95,7 @@ abstract class Expr {
 		fun visitGetExpr(expr: Get): R
 		fun visitGroupingExpr(expr: Grouping): R
 		fun visitLiteralExpr(expr: Literal): R
+		fun visitArrayLiteralExpr(expr: ArrayLiteral): R
 		fun visitLogicalExpr(expr: Logical): R
 		fun visitSetExpr(expr: Set): R
 		fun visitSuperExpr(expr: Super): R

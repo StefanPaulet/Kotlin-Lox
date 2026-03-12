@@ -74,6 +74,7 @@ fun main(args: Array<String>) {
     "Get          : Expr instance, Token name",
     "Grouping     : Expr expression",
     "Literal      : Any? value",
+    "ArrayLiteral : Token bracket, List<Expr> values",
     "Logical      : Expr left, Token operator, Expr right",
     "Set          : Expr instance, Token name, Expr value",
     "Super        : Token keyword, Token method",

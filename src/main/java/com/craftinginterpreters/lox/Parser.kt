@@ -378,8 +378,24 @@ class Parser(val tokens: List<Token>) {
     if (match(TokenType.IDENTIFIER)) {
       return Expr.Variable(previous())
     }
+    if (match(TokenType.LEFT_BRACKET)) {
+      return arrayLiteral()
+    }
 
     throw error(peek(), "Token cannot represent primary expression.")
+  }
+
+  private fun arrayLiteral(): Expr {
+    val bracket = previous()
+    val values = mutableListOf<Expr>()
+    if (!match(TokenType.RIGHT_BRACKET)) {
+      do {
+        val value = or()
+        values.add(value)
+      } while (match(TokenType.COMMA))
+      consume(TokenType.RIGHT_BRACKET, "Expected ']' at the end of array literal.")
+    }
+    return Expr.ArrayLiteral(bracket, values)
   }
 
   private fun lambda(): Expr {

@@ -48,7 +48,8 @@ primary        → NUMBER | STRING
                | lambdaExpr
                | "super" "." IDENTIFIER
                | IDENTIFIER
-               | "[" (expression ("," expression)*)? "]";
+               | arrayLiteral ;
+arrayLiteral  → "[" (logic_or ("," logic_or)*)? "]"
 lambdaExpr     → "fun" functionBody ;
 
 arguments      → assignment ( "," assignment )* ;

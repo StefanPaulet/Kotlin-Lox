@@ -192,6 +192,7 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
 
   override fun visitGroupingExpr(expr: Expr.Grouping) = resolve(expr.expression)
   override fun visitLiteralExpr(expr: Expr.Literal) = Unit
+  override fun visitArrayLiteralExpr(expr: Expr.ArrayLiteral) = expr.values.forEach { resolve(it) }
   override fun visitSetExpr(expr: Expr.Set) {
     resolve(expr.value)
     resolve(expr.instance)

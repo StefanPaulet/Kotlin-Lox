@@ -18,4 +18,6 @@ class LoxArray(val data: Array<Any?>) : LoxIndexable, LoxInstance(LoxArrayClass)
   override fun set(name: Token, value: Any?) {
     throw RuntimeError(name, "Cannot add properties to array")
   }
+
+  override fun toString(): String = data.joinToString(", ", "[", "]")
 }

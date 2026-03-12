@@ -79,6 +79,14 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     }
   }
 
+  override fun visitArrayLiteralExpr(expr: Expr.ArrayLiteral): Any {
+    val arrayValues = Array<Any?>(expr.values.size) { null }
+    expr.values.forEachIndexed { index, expr ->
+      arrayValues[index] = evaluate(expr)
+    }
+    return LoxArray(arrayValues)
+  }
+
   override fun visitLambdaExpr(expr: Expr.Lambda): Any {
     return LoxAnonymousFunction(expr, environment)
   }
@@ -108,11 +116,11 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     }
 
     val index = evaluate(expr.index)
-    if (index !is Int) {
+    if (index !is Double) {
       throw RuntimeError(expr.bracket, "Can only use integers as indices into subscriptable objects.")
     }
 
-    return base[index]
+    return base[index.toInt()]
   }
 
   override fun visitSubscriptSetExpr(expr: Expr.SubscriptSet): Any? {
@@ -122,12 +130,12 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     }
 
     val index = evaluate(expr.index)
-    if (index !is Int) {
+    if (index !is Double) {
       throw RuntimeError(expr.bracket, "Can only use integers as indices into subscriptable objects.")
     }
 
     val value = evaluate(expr.value)
-    base[index] = value
+    base[index.toInt()] = value
 
     return value
   }

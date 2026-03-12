@@ -41,6 +41,10 @@ class AstPrinter : Expr.Visitor<String> {
     TODO("Not yet implemented")
   }
 
+  override fun visitArrayLiteralExpr(expr: Expr.ArrayLiteral): String {
+    TODO("Not yet implemented")
+  }
+
   override fun visitLambdaExpr(expr: Expr.Lambda): String {
     TODO("Not yet implemented")
   }
