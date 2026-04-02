@@ -209,7 +209,7 @@ class Parser(val tokens: List<Token>) {
   }
 
   private fun assignment(): Expr {
-    val expr = or()
+    val expr = ternary()
     if (match(TokenType.EQUAL)) {
       val equals = previous()
       val value = assignment()
@@ -225,6 +225,17 @@ class Parser(val tokens: List<Token>) {
     return expr
   }
 
+  private fun ternary(): Expr {
+    var expr = or()
+    if (match(TokenType.QUERY)) {
+      val ifTrue = expression()
+      consume(TokenType.COLON, "Found '?' operator without matching ':'")
+      val ifFalse = expression()
+      expr = Expr.Ternary(expr, ifTrue, ifFalse)
+    }
+    return expr
+  }
+
   private fun or(): Expr {
     var expr = and()
     while (match(TokenType.OR)) {
@@ -236,22 +247,11 @@ class Parser(val tokens: List<Token>) {
   }
 
   private fun and(): Expr {
-    var expr = ternary()
+    var expr = equality()
     while (match(TokenType.AND)) {
       val operator = previous()
-      val right = ternary()
+      val right = equality()
       expr = Expr.Logical(expr, operator, right)
-    }
-    return expr
-  }
-
-  private fun ternary(): Expr {
-    var expr = equality()
-    if (match(TokenType.QUERY)) {
-      val ifTrue = expression()
-      consume(TokenType.COLON, "Found '?' operator without matching ':'")
-      val ifFalse = expression()
-      expr = Expr.Ternary(expr, ifTrue, ifFalse)
     }
     return expr
   }

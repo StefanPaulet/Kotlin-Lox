@@ -1,7 +1,1 @@
-var a = [1, [1, 2, 3], 3];
-print(a[1]);
-
-class A {}
-a[2] = A();
-a[2].x = 3;
-print(a);
+print true or false ? 2 : 3;
