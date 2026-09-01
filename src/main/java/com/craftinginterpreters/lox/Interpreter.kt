@@ -214,7 +214,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     if (isTruthy(evaluate(stmt.condition))) {
       execute(stmt.thenBranch)
     } else if (stmt.elseBranch != null) {
-      execute(stmt.thenBranch)
+      execute(stmt.elseBranch)
     }
     return
   }

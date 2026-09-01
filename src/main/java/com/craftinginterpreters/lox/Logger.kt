@@ -14,14 +14,14 @@ class Logger {
   var minimumSeverity = Severity.LOG
 
   internal fun warning(token: Token, message: String) {
-    report(token.line, "at '" + token.lexeme + "'", message, Severity.WARNING)
+    report(token.line, " at '" + token.lexeme + "'", message, Severity.WARNING)
   }
 
   internal fun error(token: Token, message: String) {
     if (token.type == TokenType.EOF) {
-      report(token.line, "at end", message, Severity.ERROR)
+      report(token.line, " at end", message, Severity.ERROR)
     } else {
-      report(token.line, "at '" + token.lexeme + "'", message, Severity.ERROR)
+      report(token.line, " at '" + token.lexeme + "'", message, Severity.ERROR)
     }
   }
 
@@ -37,9 +37,9 @@ class Logger {
     if (silent) return
     if (minimumSeverity > severity) return
     when (severity) {
-      Severity.LOG -> println("[line $line] $where: $message")
-      Severity.WARNING -> println("[line $line] Warning $where: $message")
-      Severity.ERROR -> System.err.println("[line $line] Error $where: $message")
+      Severity.LOG -> println("[line $line]$where: $message")
+      Severity.WARNING -> println("[line $line] Warning$where: $message")
+      Severity.ERROR -> System.err.println("[line $line] Error$where: $message")
       Severity.RUNTIME_ERROR -> System.err.println("$message\n[line ${line}]")
     }
   }

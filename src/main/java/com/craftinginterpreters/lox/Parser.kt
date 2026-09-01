@@ -54,7 +54,7 @@ class Parser(val tokens: List<Token>) {
     val name = consume(TokenType.IDENTIFIER, "Expect class name.")
 
     val superclass = if (match(TokenType.LESS)) {
-      val name = consume(TokenType.IDENTIFIER, "Expect superclass name")
+      val name = consume(TokenType.IDENTIFIER, "Expect superclass name.")
       Expr.Variable(name)
     } else null
 
@@ -94,7 +94,7 @@ class Parser(val tokens: List<Token>) {
           parameters.add(consume(TokenType.IDENTIFIER, "Expect parameter name."))
         } while(match(TokenType.COMMA))
       }
-      consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters of function.")
+      consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.")
     }
 
     consume(TokenType.LEFT_BRACE, "Expect '{' before $kind body.")
@@ -136,7 +136,8 @@ class Parser(val tokens: List<Token>) {
     var body = statement()
 
     body = increment?.let { inc -> Stmt.Block(listOf(body, Stmt.Expression(inc)))} ?: body
-    body = condition?.let { cond -> Stmt.While(cond,  body) } ?: body
+    body = condition?.let { cond -> Stmt.While(cond,  body) } ?:
+      Stmt.While(Expr.Literal(true), body)
     body = initializer?.let { init -> Stmt.Block(listOf(init, body))} ?: body
     return body
   }
@@ -353,7 +354,7 @@ class Parser(val tokens: List<Token>) {
         arguments.add(assignment())
       } while (match(TokenType.COMMA))
     }
-    val paren = consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments of function call.")
+    val paren = consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.")
     return Expr.Call(expr, paren, arguments)
   }
 
