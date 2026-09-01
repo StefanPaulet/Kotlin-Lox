@@ -3,7 +3,7 @@ package com.craftinginterpreters.lox
 class LoxClass(
     val name: String, val superclass: LoxClass?, val methods: HashMap<String, LoxFunction>,
     staticMethods: HashMap<String, LoxFunction>?,
-) : LoxCallable, LoxInstance(staticMethods?.let {LoxClass("$name metaclass", null, it, null)}) {
+) : LoxCallable, LoxInstance(staticMethods?.let {LoxClass(name, null, it, null)}) {
 
   fun findMethod(name: String): LoxFunction? = methods[name] ?: superclass?.findMethod(name)
 
@@ -19,4 +19,6 @@ class LoxClass(
     val initializer = findMethod("init")
     return initializer?.arity() ?: 0
   }
+
+  override fun toString(): String = name
 }

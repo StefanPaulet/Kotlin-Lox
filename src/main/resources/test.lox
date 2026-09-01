@@ -1,2 +1,1 @@
-A = 5;
-print A;
+foo(a | b);

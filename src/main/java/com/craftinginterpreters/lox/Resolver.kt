@@ -60,7 +60,7 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
 
       stmt.superclass?.let {
         if (it.name.lexeme == stmt.name.lexeme) {
-          Lox.error(it.name, "A class cannot inherit from itself.")
+          Lox.error(it.name, "A class can't inherit from itself.")
         }
         resolve(it)
 
@@ -151,7 +151,7 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
   override fun visitPrintStmt(stmt: Stmt.Print) = resolve(stmt.expression)
   override fun visitReturnStmt(stmt: Stmt.Return) {
     if (currentFunction == FunctionType.NONE) {
-      Lox.error(stmt.keyword, "Can't return from top-level code")
+      Lox.error(stmt.keyword, "Can't return from top-level code.")
     }
     stmt.expression?.let {
       if (currentFunction == FunctionType.INITIALIZER) {
@@ -200,8 +200,8 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
 
   override fun visitSuperExpr(expr: Expr.Super) {
     when (currentClass) {
-      ClassType.NONE -> Lox.error(expr.keyword, "Cannot use 'super' outside of a class.")
-      ClassType.CLASS -> Lox.error(expr.keyword, "Cannot use 'super' in a class with no superclass.")
+      ClassType.NONE -> Lox.error(expr.keyword, "Can't use 'super' outside of a class.")
+      ClassType.CLASS -> Lox.error(expr.keyword, "Can't use 'super' in a class with no superclass.")
       else -> Unit
     }
     resolveLocal(expr, expr.keyword)
@@ -209,7 +209,7 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
 
   override fun visitThisExpr(expr: Expr.This) {
     if (currentClass == ClassType.NONE) {
-      Lox.error(expr.keyword, "Cannot use 'this' outside of a class.")
+      Lox.error(expr.keyword, "Can't use 'this' outside of a class.")
       return
     }
     resolveLocal(expr, expr.keyword)
@@ -231,7 +231,7 @@ class Resolver(val interpreter: Interpreter) : Expr.Visitor<Unit>, Stmt.Visitor<
 
     val scope = scopes.peek()
     if (scope.containsKey(name.lexeme)) {
-      Lox.error(name, "A variable with this name already exists in this scope")
+      Lox.error(name, "Already a variable with this name in this scope.")
     }
     scope[name.lexeme] = Variable(name, scope.size)
   }

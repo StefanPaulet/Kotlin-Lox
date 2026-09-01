@@ -14,6 +14,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
       }
 
       override fun arity(): Int = 0
+      override fun toString(): String = "<native fn>";
     }
   }
 
@@ -143,7 +144,7 @@ class Interpreter : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
   override fun visitGetExpr(expr: Expr.Get): Any? {
     val instance = evaluate(expr.instance)
     if (instance !is LoxInstance) {
-      throw RuntimeError(expr.name, "Only instances have properties")
+      throw RuntimeError(expr.name, "Only instances have properties.")
     }
     val element = instance.get(expr.name)
 
