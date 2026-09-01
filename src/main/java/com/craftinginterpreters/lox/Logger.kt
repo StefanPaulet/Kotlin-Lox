@@ -11,15 +11,17 @@ class Logger {
     RUNTIME_ERROR
   }
 
+  var minimumSeverity = Severity.LOG
+
   internal fun warning(token: Token, message: String) {
-    report(token.line, " at '" + token.lexeme + "'", message, Severity.WARNING)
+    report(token.line, "at '" + token.lexeme + "'", message, Severity.WARNING)
   }
 
   internal fun error(token: Token, message: String) {
     if (token.type == TokenType.EOF) {
-      report(token.line, " at end", message, Severity.ERROR)
+      report(token.line, "at end", message, Severity.ERROR)
     } else {
-      report(token.line, " at '" + token.lexeme + "'", message, Severity.ERROR)
+      report(token.line, "at '" + token.lexeme + "'", message, Severity.ERROR)
     }
   }
 
@@ -28,16 +30,17 @@ class Logger {
   }
 
   internal fun runtimeError(error: RuntimeError) {
-    report(error.token.line, "", error.toString(), Severity.RUNTIME_ERROR)
+    report(error.token.line, "", error.message ?: "", Severity.RUNTIME_ERROR)
   }
 
   private fun report(line: Int, where: String, message: String, severity: Severity) {
     if (silent) return
+    if (minimumSeverity > severity) return
     when (severity) {
       Severity.LOG -> println("[line $line] $where: $message")
       Severity.WARNING -> println("[line $line] Warning $where: $message")
-      Severity.ERROR -> println("[line $line] Error $where: $message")
-      Severity.RUNTIME_ERROR -> System.err.println("$message \n[line ${line}]")
+      Severity.ERROR -> System.err.println("[line $line] Error $where: $message")
+      Severity.RUNTIME_ERROR -> System.err.println("$message\n[line ${line}]")
     }
   }
 }

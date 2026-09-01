@@ -11,7 +11,7 @@ class Lox {
       val bytes = Files.readAllBytes(Paths.get(path))
       run(String(bytes, Charset.defaultCharset()))
       takeIf { hadError }?.run {exitProcess(65)}
-      takeIf { hadRuntimeError }?.run {exitProcess(75)}
+      takeIf { hadRuntimeError }?.run {exitProcess(70)}
     }
 
     fun runPrompt() {
@@ -81,6 +81,10 @@ class Lox {
       logger.warning(token, message)
     }
 
+    fun disableWarnings() {
+      logger.minimumSeverity = Logger.Severity.ERROR
+    }
+
     val interpreter = Interpreter()
     var hadError = false
     var hadRuntimeError = false
@@ -89,11 +93,18 @@ class Lox {
 }
 
 fun main(args: Array<String>) {
-  if (args.size > 1) {
-    println("Usage: jlox [script]")
+  if (args.size > 2) {
+    println("Usage: jlox [script] <-no-warn>")
     exitProcess(64)
   }
-  if (args.size == 1) {
+  if (args.size == 2) {
+    if (args[1] != "-no-warn") {
+      println("Usage: jlox [script] <-no-warn>")
+      exitProcess(64)
+    }
+    Lox.disableWarnings()
+    Lox.runFile(args[0])
+  } else if (args.size == 1) {
     Lox.runFile(args[0])
   } else {
     Lox.runPrompt()
