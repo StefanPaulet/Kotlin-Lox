@@ -21,3 +21,4 @@ $(JAR): $(SOURCES)
 
 clean:
 	@rm -rf $(BUILD_DIR)
+	
